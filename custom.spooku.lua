@@ -1173,6 +1173,90 @@ Spooky.UI.screen=ScreenGui
     topDragHandle.ZIndex = 2
     makeDraggable({ topDragHandle, MAINUIframe }, MAINUIframe)
 
+    -- Menu resize grip: resizes the whole menu proportionally through UIScale.
+    -- This avoids stretching individual cards and keeps text/layout aligned.
+    local resizeGrip = Instance.new("TextButton", MAINUIframe)
+    resizeGrip.Name = "MenuResizeGrip"
+    resizeGrip.Size = UDim2.fromOffset(18, 18)
+    resizeGrip.AnchorPoint = Vector2.new(1, 1)
+    resizeGrip.Position = UDim2.new(1, -4, 1, -4)
+    resizeGrip.BackgroundTransparency = 1
+    resizeGrip.BorderSizePixel = 0
+    resizeGrip.Text = "↘"
+    resizeGrip.TextSize = 14
+    resizeGrip.Font = Enum.Font.GothamBold
+    resizeGrip.TextColor3 = Color3.fromRGB(170, 170, 190)
+    resizeGrip.ZIndex = 30
+    resizeGrip.AutoButtonColor = false
+    resizeGrip.TextTransparency = 0.05
+    _G.SpookyThemedElements.MenuResizeGrip = resizeGrip
+
+    local resizingMenu = false
+    local resizeStartMouse = nil
+    local resizeStartScale = nil
+    local resizeConnMove = nil
+    local resizeConnEnd = nil
+
+    local function clampMenuScale(v)
+        return math.clamp(tonumber(v) or 0.85, 0.65, 1.80)
+    end
+
+    local function applyMenuScale(v, saveNow)
+        local nextScale = clampMenuScale(v)
+        if UIScale then UIScale.Scale = nextScale end
+        currentBaseScale = nextScale
+        userCustomScale = nextScale
+        _G.InitialUIScaleVal = nextScale
+        if saveNow and _G.saveUIConfig then
+            pcall(_G.saveUIConfig)
+        end
+    end
+
+    resizeGrip.MouseEnter:Connect(function()
+        resizeGrip.TextColor3 = Color3.fromRGB(225, 225, 245)
+        resizeGrip.TextSize = 16
+    end)
+    resizeGrip.MouseLeave:Connect(function()
+        if not resizingMenu then
+            resizeGrip.TextColor3 = Color3.fromRGB(170, 170, 190)
+            resizeGrip.TextSize = 14
+        end
+    end)
+    resizeGrip.InputBegan:Connect(function(input)
+        if _G.isEditModeActive then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizingMenu = true
+            resizeStartMouse = input.Position
+            resizeStartScale = UIScale and UIScale.Scale or currentBaseScale or 0.85
+            resizeGrip.TextColor3 = Color3.fromRGB(255, 255, 255)
+            resizeGrip.TextSize = 16
+        end
+    end)
+    resizeGrip.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            if resizeConnMove then resizeConnMove:Disconnect() end
+            resizeConnMove = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if not resizingMenu or not resizeStartMouse or not resizeStartScale then return end
+        if resizeConnMove ~= input then return end
+        local dx = input.Position.X - resizeStartMouse.X
+        local dy = input.Position.Y - resizeStartMouse.Y
+        local delta = (dx + dy) / 900
+        applyMenuScale(resizeStartScale + delta, false)
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
+        if not resizingMenu then return end
+        resizingMenu = false
+        resizeStartMouse = nil
+        resizeStartScale = nil
+        if _G.saveUIConfig then pcall(_G.saveUIConfig) end
+        resizeGrip.TextColor3 = Color3.fromRGB(170, 170, 190)
+        resizeGrip.TextSize = 14
+    end)
+
     local leftSideImg = Instance.new("Frame", MAINUIframe)
     _G.SpookyThemedElements.leftSideImg = leftSideImg
     leftSideImg.Name = "left side image"
@@ -1838,6 +1922,18 @@ Spooky.UI.screen=ScreenGui
             end
         end
         PagesFolder.Visible = true
+        if canonId == "SpookyBounty" then
+            pcall(function()
+                local abPage = PagesFolder:FindFirstChild("AutoBounty_Page")
+                if abPage and abPage:IsA("ScrollingFrame") then
+                    abPage.CanvasPosition = Vector2.zero
+                    abPage.Active = true
+                    abPage.ScrollingEnabled = true
+                    abPage.ScrollingDirection = Enum.ScrollingDirection.Y
+                    abPage.CanvasSize = UDim2.new(0, 0, 0, math.max(abPage.AbsoluteCanvasSize.Y, 980))
+                end
+            end)
+        end
         updateSidebarVisual(canonId)
         addLog("[TAB] " .. tostring(canonId))
     end
@@ -7475,7 +7571,7 @@ do
                     local data = HttpService:JSONDecode(raw)
                     if data and type(data) == "table" then
                         if data.theme then applyTheme(data.theme) end
-                        if data.scale and data.scale >= 0.35 and data.scale <= 1.5 and UIScale then
+                        if data.scale and data.scale >= 0.35 and data.scale <= 1.8 and UIScale then
                             UIScale.Scale = data.scale
                             currentBaseScale = data.scale
                             userCustomScale = data.scale
@@ -7687,9 +7783,9 @@ do
         saveThemeBtn.TextColor3 = Color3.fromRGB(90, 255, 160)
     end)
 
-    local cScale = makeCard(UIPage, "UI Scale", "Escala UI", 118, 166)
+    local cScale = makeCard(UIPage, "UI Scale", "Escala UI", 142, 166)
 
-    createSlider(cScale, "UI Scale", "Escala de Interfaz", 0.65, 1.35, currentBaseScale or 1.0, true, 0.05, "x", function(val)
+    createSlider(cScale, "UI Scale", "Escala de Interfaz", 0.65, 1.80, currentBaseScale or 1.0, true, 0.05, "x", function(val)
         if UIScale then
             UIScale.Scale = val
             currentBaseScale = val
@@ -7699,38 +7795,35 @@ do
         end
     end, UDim2.new(0, 8, 0, 28))
 
-    local qW = UDim2.new(0.23, 0, 0, 26)
-    createActionButton(cScale, "0.80x", "0.80x", qW, UDim2.new(0, 8, 0, 74), function()
+    local qW = UDim2.new(0.185, -4, 0, 26)
+    local function setQuickMenuScale(v)
         if UIScale then
-            UIScale.Scale = 0.80; currentBaseScale = 0.80; userCustomScale = 0.80; _G.InitialUIScaleVal = 0.80; _G.saveUIConfig()
+            UIScale.Scale = v
+            currentBaseScale = v
+            userCustomScale = v
+            _G.InitialUIScaleVal = v
+            if _G.saveUIConfig then _G.saveUIConfig() end
         end
-        notifyToggle("UI Scale: 0.80x", true)
-    end)
-    createActionButton(cScale, "1.00x", "1.00x", qW, UDim2.new(0.25, 6, 0, 74), function()
-        if UIScale then
-            UIScale.Scale = 1.00; currentBaseScale = 1.00; userCustomScale = 1.00; _G.InitialUIScaleVal = 1.00; _G.saveUIConfig()
-        end
-        notifyToggle("UI Scale: 1.00x", true)
-    end)
-    createActionButton(cScale, "1.20x", "1.20x", qW, UDim2.new(0.50, 4, 0, 74), function()
-        if UIScale then
-            UIScale.Scale = 1.20; currentBaseScale = 1.20; userCustomScale = 1.20; _G.InitialUIScaleVal = 1.20; _G.saveUIConfig()
-        end
-        notifyToggle("UI Scale: 1.20x", true)
-    end)
-    createActionButton(cScale, "Reset", "Reiniciar", qW, UDim2.new(0.75, 2, 0, 74), function()
+        notifyToggle("UI Scale: " .. string.format("%.2fx", v), true)
+    end
+    createActionButton(cScale, "0.80x", "0.80x", qW, UDim2.new(0, 8, 0, 74), function() setQuickMenuScale(0.80) end)
+    createActionButton(cScale, "1.00x", "1.00x", qW, UDim2.new(0.205, 4, 0, 74), function() setQuickMenuScale(1.00) end)
+    createActionButton(cScale, "1.20x", "1.20x", qW, UDim2.new(0.405, 2, 0, 74), function() setQuickMenuScale(1.20) end)
+    createActionButton(cScale, "1.50x", "1.50x", qW, UDim2.new(0.605, 0, 0, 74), function() setQuickMenuScale(1.50) end)
+    createActionButton(cScale, "1.80x", "1.80x", qW, UDim2.new(0.805, -2, 0, 74), function() setQuickMenuScale(1.80) end)
+    createActionButton(cScale, "Reset", "Reiniciar", UDim2.new(1, -16, 0, 24), UDim2.new(0, 8, 0, 104), function()
         if UIScale then
             userCustomScale = nil
             _G.InitialUIScaleVal = nil
             local defScale = computeScale()
             UIScale.Scale = defScale
             currentBaseScale = defScale
-            _G.saveUIConfig()
+            if _G.saveUIConfig then _G.saveUIConfig() end
         end
         notifyToggle("UI Scale Reset to Auto", true)
     end)
 
-    local cAnim = makeCard(UIPage, "UI Animations", "Animaciones UI", 188, 292)
+    local cAnim = makeCard(UIPage, "UI Animations", "Animaciones UI", 188, 316)
     local aBW = UDim2.new(0, 124, 0, 26)
     local animButtons = {}
 
@@ -8747,7 +8840,7 @@ end
     local ConfigsPage = createScrollPage("Configs_Page", 640)
 
     local cTopAuto = makeCard(ConfigsPage, "AutoLoad", "Auto Carga", 74, 2)
-    local autoBtnW = UDim2.new(0.31, 0, 0, 28)
+    local autoBtnW = UDim2.new(0.23, 0, 0, 28)
 
     createToggleButton(cTopAuto, "AutoLoadGlobal", "AutoLoad Global", "AutoCargar Global", autoBtnW, UDim2.new(0, 6, 0, 28))
     FeatureCallbacks["AutoLoadGlobal"] = function(v)
@@ -8764,7 +8857,7 @@ end
         setFeatureState("AutoLoadGlobal", true, true)
     end
 
-    createToggleButton(cTopAuto, "AutoLoadMacro", "AutoLoad Macro", "AutoCargar Macro", autoBtnW, UDim2.new(0.33, 4, 0, 28))
+    createToggleButton(cTopAuto, "AutoLoadMacro", "AutoLoad Macro", "AutoCargar Macro", autoBtnW, UDim2.new(0.255, 2, 0, 28))
     FeatureCallbacks["AutoLoadMacro"] = function(v)
         if v then
             pcall(function() if writefile then writefile("Spooky_AutoLoad_Macro.txt", "true") end end)
@@ -8777,7 +8870,23 @@ end
         setFeatureState("AutoLoadMacro", true, true)
     end
 
-    createToggleButton(cTopAuto, "AutoLoadUI", "AutoLoad UI", "AutoCargar UI", autoBtnW, UDim2.new(0.66, 4, 0, 28))
+    createToggleButton(cTopAuto, "AutoLoadUI", "AutoLoad UI", "AutoCargar UI", autoBtnW, UDim2.new(0.51, 0, 0, 28))
+
+    createActionButton(cTopAuto, "Set AutoLoad Config", "Establecer AutoCarga", autoBtnW, UDim2.new(0.755, -2, 0, 28), function()
+        local ok, err = pcall(function()
+            if not writefile then error("writefile unavailable") end
+            local cfg = getCompactConfigString()
+            writefile("Spooky_AutoLoad_Config.json", cfg)
+            writefile("Spooky_AutoLoad_FullConfig.txt", "true")
+            _G.Spooky_AutoLoadEnabled = true
+            setFeatureState("AutoLoadGlobal", true, true)
+        end)
+        if ok then
+            notifyToggle("AutoLoad config set! It will load on next startup.", true)
+        else
+            notifyToggle("Set AutoLoad error: " .. tostring(err), false)
+        end
+    end)
     FeatureCallbacks["AutoLoadUI"] = function(v)
         if v then
             pcall(function() if writefile then writefile("Spooky_AutoLoad_UI.txt", "true") end end)
@@ -8928,8 +9037,42 @@ end
                 minLvl = Settings.ignoreLowLevelThreshold,
                 camSmooth = Settings.camLockSmoothness
             },
+            AutoBounty = (function()
+                local ab = Spooky.AutoBountyPersistence
+                local weapons = (ab and ab.Normalize) and ab.Normalize(getgenv().SpookyAutoBountyWeapons) or {
+                    Melee = true, Fruit = true, Sword = true, Gun = true
+                }
+                local farDistance = tonumber(getgenv().SpookyAutoBountySkipFarDistance) or 300
+                farDistance = math.clamp(math.floor(farDistance), 50, 30000)
+                local priority = (ab and ab.NormalizeAbilityPriority)
+                    and ab.NormalizeAbilityPriority(getgenv().SpookyAutoBountyAbilityPriority)
+                    or "Melee > Sword > Gun"
+                return {
+                    enabled = getgenv().SpookyAutoBountyEnabled == true,
+                    autoStart = getgenv().SpookyAutoBountyAutoStart == true,
+                    weapons = weapons,
+                    farSkip = {
+                        enabled = getgenv().SpookyAutoBountySkipFarEnabled == true,
+                        distance = farDistance
+                    },
+                    abilityPriority = priority,
+                    abilityPriorityIndex = (function()
+                        local wanted = priority
+                        if ab and ab.AbilityPriorityOptions then
+                            for i, option in ipairs(ab.AbilityPriorityOptions) do
+                                if option == wanted then return i end
+                            end
+                        end
+                        return 1
+                    end)(),
+                    farSpeed = tonumber(getgenv().AutoBountyFarSpeed) or 160,
+                    nearSpeed = tonumber(getgenv().AutoBountyNearSpeed) or 350,
+                    healThreshold = tonumber(getgenv().SpookyHealThreshold) or 6000,
+                    autoTeam = (Spooky.AutoTeam and Spooky.AutoTeam.Current) or nil
+                }
+            end)(),
             KB = kbList,
-            V = "SPK2"
+            V = "SPK3"
         }
         return "SPK_CFG:" .. HttpService:JSONEncode(pack)
     end
@@ -8950,6 +9093,85 @@ end
         local ok, data = pcall(function() return HttpService:JSONDecode(str) end)
         if ok and data and (data.F or data.Toggles) then
             if data.PlayerBlacklist then Spooky.RestorePlayerBlacklist(data.PlayerBlacklist) end
+            if data.AutoBounty and type(data.AutoBounty) == "table" then
+                local ab = data.AutoBounty
+                local persist = Spooky.AutoBountyPersistence
+                if persist then
+                    getgenv().SpookyAutoBountyWeapons = persist.Normalize(ab.weapons)
+                    getgenv().SpookyAutoBountySkipFarEnabled = ab.farSkip and ab.farSkip.enabled == true or false
+                    local farDistance = tonumber(ab.farSkip and ab.farSkip.distance) or 300
+                    getgenv().SpookyAutoBountySkipFarDistance = math.clamp(math.floor(farDistance), 50, 30000)
+                    local loadedPriority = ab.abilityPriority
+                    if (loadedPriority == nil or loadedPriority == "") and tonumber(ab.abilityPriorityIndex) then
+                        local idx = math.clamp(math.floor(tonumber(ab.abilityPriorityIndex)), 1, #(persist.AbilityPriorityOptions or {}))
+                        loadedPriority = persist.AbilityPriorityOptions[idx]
+                    end
+                    getgenv().SpookyAutoBountyAbilityPriority = persist.NormalizeAbilityPriority(loadedPriority)
+                    getgenv().SpookyAutoBountyEnabled = ab.enabled == true
+                    getgenv().SpookyAutoBountyAutoStart = ab.autoStart == true
+                end
+                getgenv().AutoBountyFarSpeed = tonumber(ab.farSpeed) or 160
+                getgenv().AutoBountyNearSpeed = tonumber(ab.nearSpeed) or 350
+                getgenv().SpookyHealThreshold = tonumber(ab.healThreshold) or 6000
+                if Spooky.AutoBountySpeedUI then
+                    if Spooky.AutoBountySpeedUI.FarInput and Spooky.AutoBountySpeedUI.FarInput.Parent then
+                        Spooky.AutoBountySpeedUI.FarInput.Text = tostring(getgenv().AutoBountyFarSpeed)
+                    end
+                    if Spooky.AutoBountySpeedUI.NearInput and Spooky.AutoBountySpeedUI.NearInput.Parent then
+                        Spooky.AutoBountySpeedUI.NearInput.Text = tostring(getgenv().AutoBountyNearSpeed)
+                    end
+                end
+                if Spooky.AutoBountyHealUI then
+                    if Spooky.AutoBountyHealUI.Input and Spooky.AutoBountyHealUI.Input.Parent then
+                        Spooky.AutoBountyHealUI.Input.Text = tostring(getgenv().SpookyHealThreshold)
+                    end
+                    if Spooky.AutoBountyHealUI.Label and Spooky.AutoBountyHealUI.Label.Parent then
+                        Spooky.AutoBountyHealUI.Label.Text = (CurrentLang == "ES") and ("Límite Curación: " .. tostring(getgenv().SpookyHealThreshold)) or ("Heal Threshold: " .. tostring(getgenv().SpookyHealThreshold))
+                    end
+                end
+
+                if Spooky.AutoBountyWeaponsUI and Spooky.AutoBountyWeaponsUI.Refresh then
+                    pcall(Spooky.AutoBountyWeaponsUI.Refresh)
+                end
+                if Spooky.AutoBountyManualUI and Spooky.AutoBountyManualUI.Refresh then
+                    pcall(Spooky.AutoBountyManualUI.Refresh)
+                end
+                if Spooky.AutoBountyPriorityUI then
+                    local ui = Spooky.AutoBountyPriorityUI
+                    if ui.options and #ui.options > 0 and Spooky.AutoBountyPersistence then
+                        local wanted = Spooky.AutoBountyPersistence.NormalizeAbilityPriority(getgenv().SpookyAutoBountyAbilityPriority)
+                        for i, option in ipairs(ui.options) do
+                            if option == wanted then
+                                ui.index = i
+                                break
+                            end
+                        end
+                        if ui.button and ui.button.Parent then
+                            ui.button.Text = "Temp Ability Priority: " .. tostring(wanted)
+                        end
+                        -- Keep all three representations synchronized after Global Config load.
+                        getgenv().SpookyAutoBountyAbilityPriority = wanted
+                        if Spooky.AutoBountyPersistence and Spooky.AutoBountyPersistence.Save then
+                            pcall(function() Spooky.AutoBountyPersistence.Save(getgenv().SpookyAutoBountyEnabled == true) end)
+                        end
+                    end
+                end
+                if Spooky.AutoTeam and ab.autoTeam then
+                    local team = tostring(ab.autoTeam)
+                    if team == "Pirates" or team == "Marines" or team == "None" then
+                        Spooky.AutoTeam.Current = team
+                        pcall(function()
+                            if writefile then writefile("Spooky_AutoTeam.txt", team) end
+                        end)
+                        if Spooky.AutoTeam.UpdateVisuals then
+                            pcall(Spooky.AutoTeam.UpdateVisuals)
+                        end
+                    end
+                end
+                if persist and persist.Save then
+                    pcall(function() persist.Save(getgenv().SpookyAutoBountyEnabled == true) end)
+                end
+            end
             if data.S then
                 for _, key in ipairs({"aimMode","aimFovRadius","aimFovOrigin","aimTargetPolicy","aimTargetUserId"}) do
                     if data.S[key] ~= nil then Settings[key] = data.S[key] end
@@ -8977,6 +9199,13 @@ end
             elseif data.F then
                 for _, k in ipairs(data.F) do
                     setFeatureState(k, true)
+                end
+            end
+            if data.AutoBounty and type(data.AutoBounty) == "table" then
+                getgenv().SpookyAutoBountyEnabled = data.AutoBounty.enabled == true
+                getgenv().SpookyAutoBountyAutoStart = data.AutoBounty.autoStart == true
+                if Spooky.AutoBountyAutoStartUI and Spooky.AutoBountyAutoStartUI.Refresh then
+                    pcall(Spooky.AutoBountyAutoStartUI.Refresh)
                 end
             end
             if data.Locked ~= nil then
@@ -9083,11 +9312,12 @@ end
     local masterCard = makeCard(ConfigsPage, "Profiles", "Perfiles", 144, 82)
     masterCard.ZIndex = 4
 
-    _G.Spooky_LoadFullConfig = function()
+    _G.Spooky_LoadFullConfig = function(pathOverride)
         pcall(function()
             local json = nil
-            if isfile and isfile("Spooky_GlobalFullConfig.json") and readfile then
-                json = readfile("Spooky_GlobalFullConfig.json")
+            local configPath = pathOverride or "Spooky_GlobalFullConfig.json"
+            if isfile and isfile(configPath) and readfile then
+                json = readfile(configPath)
             end
             if json and json ~= "" then
                 if applyCompactConfigString(json) then return end
@@ -16290,6 +16520,7 @@ do
         distance = 300
     }
     Spooky.AutoBountyPersistence.DefaultAbilityPriority = "Melee > Sword > Gun"
+    Spooky.AutoBountyPersistence.DefaultAutoStart = false
     Spooky.AutoBountyPersistence.AbilityPriorityOptions = {
         "Melee > Sword > Gun",
         "Melee > Gun > Sword",
@@ -16332,6 +16563,7 @@ do
         getgenv().SpookyAutoBountySkipFarEnabled = (farSkip.enabled == true)
         getgenv().SpookyAutoBountySkipFarDistance = tonumber(farSkip.distance) or Spooky.AutoBountyPersistence.DefaultFarSkip.distance
         getgenv().SpookyAutoBountyAbilityPriority = Spooky.AutoBountyPersistence.NormalizeAbilityPriority(data.abilityPriority)
+        getgenv().SpookyAutoBountyAutoStart = data.autoStart == true
         if getgenv().SpookyAutoBountySkipFarDistance < 50 then getgenv().SpookyAutoBountySkipFarDistance = 50 end
         if getgenv().SpookyAutoBountySkipFarDistance > 30000 then getgenv().SpookyAutoBountySkipFarDistance = 30000 end
         return data
@@ -16350,7 +16582,8 @@ do
                         enabled = getgenv().SpookyAutoBountySkipFarEnabled == true,
                         distance = tonumber(getgenv().SpookyAutoBountySkipFarDistance) or Spooky.AutoBountyPersistence.DefaultFarSkip.distance
                     },
-                    abilityPriority = Spooky.AutoBountyPersistence.NormalizeAbilityPriority(getgenv().SpookyAutoBountyAbilityPriority)
+                    abilityPriority = Spooky.AutoBountyPersistence.NormalizeAbilityPriority(getgenv().SpookyAutoBountyAbilityPriority),
+                    autoStart = getgenv().SpookyAutoBountyAutoStart == true
                 }))
             end
         end)
@@ -17399,6 +17632,8 @@ local function selectTarget(p)
         local bStat = p.leaderstats:FindFirstChild("Bounty/Honor") or p.leaderstats:FindFirstChild("Bounty") or p.leaderstats:FindFirstChild("Honor")
         if bStat then bVal = tonumber(bStat.Value) or 0 end
     end
+    getgenv().LastTargetBounty = bVal
+    getgenv().LastTargetBountyType = rType
     if UI and UI.UpdateTargetsList then
         UI.UpdateTargetsList({p.Name .. ": " .. (math.round((bVal / 1000000) * 100) / 100) .. "M " .. rType})
     end
@@ -18919,6 +19154,11 @@ do
                                     if v:IsA("TextLabel") then
                                         local textLower = string.lower(v.Text)
                                         if string.find(textLower, targNameLower) and (string.find(textLower, "died") or string.find(textLower, "left") or string.find(textLower, "killed")) then
+                                            getgenv().killed = curTarg
+                                            pendingKillTarget = curTarg
+                                            pendingKillReward = tonumber(getgenv().LastTargetBounty) or 0
+                                            pendingKillAt = os.clock()
+                                            rewardFallbackUsed = false
                                             SkipPlayer(true)
                                             pcall(function() v:Destroy() end)
                                             break
@@ -19189,56 +19429,117 @@ do
         end
     end
 
-    local lstatsInit = lp:FindFirstChild("leaderstats")
-    local bStatInit = lstatsInit and (lstatsInit:FindFirstChild("Bounty/Honor") or lstatsInit:FindFirstChild("Bounty") or lstatsInit:FindFirstChild("Honor"))
-    local Bounty = bStatInit and tonumber(bStatInit.Value) or 0
+    local function readOwnBountyValue()
+        local ls = lp:FindFirstChild("leaderstats")
+        local stat = ls and (
+            ls:FindFirstChild("Bounty/Honor")
+            or ls:FindFirstChild("Bounty")
+            or ls:FindFirstChild("Honor")
+        )
+        if not stat then
+            return nil
+        end
+        local value = tonumber(stat.Value)
+        return value
+    end
+
+    local InitialBountyValue = readOwnBountyValue()
+    local Bounty = InitialBountyValue or 0
+    local LastBountyValue = InitialBountyValue
     local Earned = 0
     local startTime = tick()
-    local OldTotalEarned = _G.TotalEarn or 0
-    local TotalEarned = _G.TotalEarn or 0
+    local OldTotalEarned = tonumber(_G.TotalEarn) or 0
+    local TotalEarned = OldTotalEarned
+    local pendingKillReward = 0
+    local pendingKillAt = 0
+    local pendingKillTarget = nil
+    local rewardFallbackUsed = false
+    local fallbackAppliedAmount = 0
+    local fallbackAppliedAt = 0
 
     function FormatNumber(number)
+        number = tonumber(number) or 0
         if number >= 1000000 then
             return string.format("%.2fM", number / 1000000)
         elseif number >= 1000 then
             return string.format("%.1fK", number / 1000)
         else
-            return tostring(number)
+            return tostring(math.floor(number))
+        end
+    end
+
+    local function applyEarnedAmount(amount)
+        amount = tonumber(amount) or 0
+        if amount <= 0 then return end
+        Earned = Earned + amount
+        TotalEarned = TotalEarned + amount
+        _G.TotalEarn = TotalEarned
+        if getgenv().killed then
+            pcall(function()
+                wEarn(getgenv().killed, amount, TotalEarned)
+            end)
         end
     end
 
     task.spawn(function()
-    if not isBountyCurrent() then return end
-        while isBountyCurrent() and task.wait(0.5) do
+        if not isBountyCurrent() then return end
+        while isBountyCurrent() and task.wait(0.25) do
             if not isBountyCurrent() then return end
             pcall(function()
-                local curLstats = lp:FindFirstChild("leaderstats")
-                local curBStat = curLstats and (curLstats:FindFirstChild("Bounty/Honor") or curLstats:FindFirstChild("Bounty") or curLstats:FindFirstChild("Honor"))
-                local currentBVal = curBStat and tonumber(curBStat.Value) or Bounty
-                Earned = currentBVal - Bounty
+                local currentBVal = readOwnBountyValue()
+                if currentBVal ~= nil then
+                    if LastBountyValue == nil then
+                        LastBountyValue = currentBVal
+                    elseif currentBVal > LastBountyValue then
+                        local gain = currentBVal - LastBountyValue
+                        if fallbackAppliedAmount > 0 and os.clock() - fallbackAppliedAt <= 10 then
+                            local covered = math.min(gain, fallbackAppliedAmount)
+                            fallbackAppliedAmount = fallbackAppliedAmount - covered
+                            gain = gain - covered
+                        elseif fallbackAppliedAmount > 0 then
+                            fallbackAppliedAmount = 0
+                        end
+                        if gain > 0 then
+                            applyEarnedAmount(gain)
+                        end
+                        pendingKillReward = 0
+                        pendingKillAt = 0
+                        pendingKillTarget = nil
+                        rewardFallbackUsed = false
+                    end
+                    LastBountyValue = currentBVal
+                end
+
+                -- Fallback: some clients delay the leaderstats update after a kill.
+                -- Only use the cached target bounty when the own bounty stat is unavailable
+                -- or has not changed for a short grace period after a confirmed kill.
+                if pendingKillReward > 0
+                    and not rewardFallbackUsed
+                    and os.clock() - pendingKillAt >= 2.0
+                    and (currentBVal == nil or currentBVal == Bounty or currentBVal == LastBountyValue)
+                then
+                    applyEarnedAmount(pendingKillReward)
+                    fallbackAppliedAmount = pendingKillReward
+                    fallbackAppliedAt = os.clock()
+                    rewardFallbackUsed = true
+                    pendingKillReward = 0
+                    pendingKillAt = 0
+                    pendingKillTarget = nil
+                end
+
                 local elapsedTime = tick() - startTime
-                local hours = math.floor(elapsedTime / 3600)
-                local minutes = math.floor((elapsedTime % 3600) / 60)
-                local seconds = math.floor(elapsedTime % 60)
                 _G.Time = elapsedTime
-                local timeString = string.format("%02d:%02d:%02d", hours, minutes, seconds)
                 if UI and UI.UpdateStats then
                     UI.UpdateStats(
                         FormatNumber(Earned),
-                        FormatNumber(TotalEarned + Earned),
-                        FormatNumber(currentBVal)
+                        FormatNumber(TotalEarned),
+                        FormatNumber(currentBVal or LastBountyValue)
                     )
-                end
-                if Earned ~= 0 and TotalEarned ~= OldTotalEarned + Earned then
-                    TotalEarned = OldTotalEarned + Earned
-                    _G.TotalEarn = TotalEarned
-                    if getgenv().killed then
-                        wEarn(getgenv().killed, Earned, TotalEarned)
-                    end
                 end
             end)
         end
     end)
+
 
     if UI and UI.ShowNotification then
         UI.ShowNotification("Spooky Bounty Active & Hunting!", "success")
@@ -19294,7 +19595,7 @@ end
     subRow.Size = UDim2.new(1, -20, 0, 32)
     subRow.Position = UDim2.new(0, 10, 0, 100)
     subRow.BackgroundTransparency = 1
-    local btnW = UDim2.new(0.315, 0, 1, 0)
+    local btnW = UDim2.new(0.235, 0, 1, 0)
     local skipBtn = createActionButton(subRow, "Skip Target", "Saltar Objetivo", btnW, UDim2.new(0, 0, 0, 0), function()
         if getgenv().SkipPlayer then
             pcall(function() getgenv().SkipPlayer(true) end)
@@ -19304,7 +19605,7 @@ end
         end
     end)
     table.insert(TranslatableUI, { btn = skipBtn, en = "Skip Target", es = "Saltar Objetivo" })
-    local hopBtn = createActionButton(subRow, "Server Hop", "Cambiar Servidor", btnW, UDim2.new(0.342, 0, 0, 0), function()
+    local hopBtn = createActionButton(subRow, "Server Hop", "Cambiar Servidor", btnW, UDim2.new(0.255, 0, 0, 0), function()
         if getgenv().SpookyAutoBountyRunning then
             Spooky.AutoBountyPersistence.Save(true)
         end
@@ -19316,11 +19617,49 @@ end
         end
     end)
     table.insert(TranslatableUI, { btn = hopBtn, en = "Server Hop", es = "Cambiar Servidor" })
-    local resetBtn = createActionButton(subRow, "Reset Filter", "Reiniciar Filtro", btnW, UDim2.new(0.685, 0, 0, 0), function()
+    local resetBtn = createActionButton(subRow, "Reset Filter", "Reiniciar Filtro", btnW, UDim2.new(0.51, 0, 0, 0), function()
         getgenv().checked = {}
         notifyToggle((CurrentLang == "ES") and "Lista de objetivos reiniciada!" or "Target blacklist cleared!", true)
     end)
     table.insert(TranslatableUI, { btn = resetBtn, en = "Reset Filter", es = "Reiniciar Filtro" })
+
+    Spooky.AutoBountyAutoStartUI = Spooky.AutoBountyAutoStartUI or {}
+    Spooky.AutoBountyAutoStartUI.Refresh = function()
+        local b = Spooky.AutoBountyAutoStartUI.Button
+        if not b or not b.Parent then return end
+        local on = getgenv().SpookyAutoBountyAutoStart == true
+        b.Text = on and "Auto Start: ON" or "Auto Start: OFF"
+        b.BackgroundColor3 = on and Color3.fromRGB(24, 52, 38) or Color3.fromRGB(24, 24, 30)
+        local st = b:FindFirstChildOfClass("UIStroke")
+        if st then st.Color = on and Color3.fromRGB(60, 150, 95) or Color3.fromRGB(55, 55, 68) end
+    end
+    Spooky.AutoBountyAutoStartUI.Button = createActionButton(
+        subRow,
+        "Auto Start: OFF",
+        "Auto Start: OFF",
+        btnW,
+        UDim2.new(0.765, 0, 0, 0),
+        function()
+            local enabled = not (getgenv().SpookyAutoBountyAutoStart == true)
+            getgenv().SpookyAutoBountyAutoStart = enabled
+            if Spooky.AutoBountyPersistence and Spooky.AutoBountyPersistence.Save then
+                Spooky.AutoBountyPersistence.Save(getgenv().SpookyAutoBountyEnabled == true)
+            end
+            Spooky.AutoBountyAutoStartUI.Refresh()
+            if enabled then
+                notifyToggle((CurrentLang == "ES") and "Auto Start Bounty activado" or "Auto Start Bounty enabled", true)
+                if not getgenv().SpookyAutoBountyRunning then
+                    task.spawn(function()
+                        pcall(runSpookyAutoBountyExact)
+                    end)
+                end
+            else
+                notifyToggle((CurrentLang == "ES") and "Auto Start Bounty desactivado" or "Auto Start Bounty disabled", false)
+            end
+        end
+    )
+    Spooky.AutoBountyAutoStartUI.Button.TextSize = 9
+    Spooky.AutoBountyAutoStartUI.Refresh()
     local c2 = makeCard(AutoBountyPage, "Hunter Telemetry", "Telemetría", 150, 154)
     local targetNameBox = Instance.new("TextLabel", c2)
     targetNameBox.Size = UDim2.new(0.48, 0, 0, 30)
@@ -19409,11 +19748,64 @@ end
     Spooky.AutoBountyWeaponsUI.Create("Sword", 0.5)
     Spooky.AutoBountyWeaponsUI.Create("Gun", 0.75)
     Spooky.AutoBountyWeaponsUI.Refresh()
-    Spooky.AutoBountyPriorityButton = createCycleButton(c2, "Temp Ability Priority", "Приоритет способок", Spooky.AutoBountyPersistence.AbilityPriorityOptions, Spooky.AutoBountyWeaponPriority.Index(), UDim2.new(1, -16, 0, 24), UDim2.new(0, 8, 0, 116), function(choice)
-        getgenv().SpookyAutoBountyAbilityPriority = Spooky.AutoBountyPersistence.NormalizeAbilityPriority(choice)
-        Spooky.AutoBountyPersistence.Save(getgenv().SpookyAutoBountyEnabled == true)
-        notifyToggle("Temp ability priority: " .. tostring(getgenv().SpookyAutoBountyAbilityPriority), true)
-    end)
+    do
+        local ui = Spooky.AutoBountyPriorityUI or {}
+        Spooky.AutoBountyPriorityUI = ui
+        ui.options = Spooky.AutoBountyPersistence.AbilityPriorityOptions or {
+            "Melee > Sword > Gun",
+            "Melee > Gun > Sword",
+            "Sword > Melee > Gun",
+            "Sword > Gun > Melee",
+            "Gun > Melee > Sword",
+            "Gun > Sword > Melee"
+        }
+
+        ui.GetCurrent = function()
+            return Spooky.AutoBountyPersistence.NormalizeAbilityPriority(
+                getgenv().SpookyAutoBountyAbilityPriority
+            )
+        end
+
+        ui.GetIndex = function()
+            local wanted = ui.GetCurrent()
+            for i, option in ipairs(ui.options) do
+                if option == wanted then
+                    return i
+                end
+            end
+            return 1
+        end
+
+        ui.Refresh = function()
+            local current = ui.GetCurrent()
+            ui.index = ui.GetIndex() -- UI-only cache; never the source of truth.
+            if ui.button and ui.button.Parent then
+                ui.button.Text = "Temp Ability Priority: " .. tostring(current)
+            end
+        end
+
+        ui.button = createActionButton(
+            c2,
+            "Temp Ability Priority: " .. tostring(ui.GetCurrent()),
+            "Приоритет способок: " .. tostring(ui.GetCurrent()),
+            UDim2.new(1, -16, 0, 24),
+            UDim2.new(0, 8, 0, 116),
+            function()
+                local currentIndex = ui.GetIndex()
+                local nextIndex = (currentIndex % #ui.options) + 1
+                local choice = ui.options[nextIndex]
+                getgenv().SpookyAutoBountyAbilityPriority =
+                    Spooky.AutoBountyPersistence.NormalizeAbilityPriority(choice)
+                Spooky.AutoBountyPersistence.Save(getgenv().SpookyAutoBountyEnabled == true)
+                ui.Refresh()
+                notifyToggle("Temp ability priority: " .. tostring(choice), true)
+            end
+        )
+        ui.button.TextSize = 9.5
+        Spooky.AutoBountyPriorityButton = ui.button
+        ui.Refresh()
+    end
+
 
     task.spawn(function()
         while isCurrentSession() and task.wait(0.5) do
@@ -19512,6 +19904,9 @@ end
     })
 
     local healInput = Instance.new("TextBox", c4)
+    Spooky.AutoBountyHealUI = Spooky.AutoBountyHealUI or {}
+    Spooky.AutoBountyHealUI.Input = healInput
+    Spooky.AutoBountyHealUI.Label = healLabel
     healInput.Size = UDim2.new(0.30, 0, 0, 28)
     healInput.Position = UDim2.new(0.65, 0, 0, 26)
     healInput.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
@@ -19568,6 +19963,8 @@ end
     farLabel.Text = (CurrentLang == "ES") and "Vel. Lejos:" or "Far Speed:"
 
     local farInput = Instance.new("TextBox", c5BountySpeed)
+    Spooky.AutoBountySpeedUI = Spooky.AutoBountySpeedUI or {}
+    Spooky.AutoBountySpeedUI.FarInput = farInput
     farInput.Size = UDim2.new(0.16, 0, 0, 26)
     farInput.Position = UDim2.new(0.33, 0, 0, 26)
     farInput.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
@@ -19600,6 +19997,8 @@ end
     nearLabel.Text = (CurrentLang == "ES") and "Vel. Cerca:" or "Near Speed:"
 
     local nearInput = Instance.new("TextBox", c5BountySpeed)
+    Spooky.AutoBountySpeedUI = Spooky.AutoBountySpeedUI or {}
+    Spooky.AutoBountySpeedUI.NearInput = nearInput
     nearInput.Size = UDim2.new(0.16, 0, 0, 26)
     nearInput.Position = UDim2.new(0.84, -6, 0, 26)
     nearInput.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
@@ -19771,6 +20170,11 @@ end
     Spooky.AutoTeam.SwitchAndSaveTeam = function(teamName)
         Spooky.AutoTeam.Current = teamName
         pcall(function()
+            if Spooky.AutoBountyPersistence and Spooky.AutoBountyPersistence.Save then
+                Spooky.AutoBountyPersistence.Save(getgenv().SpookyAutoBountyEnabled == true)
+            end
+        end)
+        pcall(function()
             if writefile then
                 writefile("Spooky_AutoTeam.txt", teamName)
             end
@@ -19840,8 +20244,11 @@ end
     end
 
     task.defer(function()
-        if getgenv().SpookyAutoBountyEnabled == true and not getgenv().SpookyAutoBountyRunning then
-            runSpookyAutoBountyExact()
+        if getgenv().SpookyAutoBountyAutoStart == true and not getgenv().SpookyAutoBountyRunning then
+            task.wait(0.35)
+            if isCurrentSession() and not getgenv().SpookyAutoBountyRunning then
+                runSpookyAutoBountyExact()
+            end
         end
     end)
 
@@ -26131,7 +26538,11 @@ registerConnection(UserInputService.InputBegan:Connect(function(input, gpe)
 end))
 pcall(function()
     if isfile and isfile("Spooky_AutoLoad_FullConfig.txt") and _G.Spooky_LoadFullConfig then
-        _G.Spooky_LoadFullConfig()
+        if isfile("Spooky_AutoLoad_Config.json") then
+            _G.Spooky_LoadFullConfig("Spooky_AutoLoad_Config.json")
+        else
+            _G.Spooky_LoadFullConfig()
+        end
     else
         if isfile and isfile("Spooky_AutoLoad_Macro.txt") and _G.Spooky_LoadMacroConfig then
             _G.Spooky_LoadMacroConfig()
