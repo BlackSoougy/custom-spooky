@@ -1,4 +1,3 @@
-
 local F = {
     UDim2 = UDim2.new,
     Color3 = Color3.fromRGB,
@@ -161,6 +160,7 @@ local function cleanOldGuis(parent)
     if not parent then return end
     local guiNames = {
         "Spooky_GUI",
+        "Spooky_ESPCustomizer",
         "Spooky_LoadingGui",
         "Spooky_LoginGui",
         "Spooky_MobileToggle",
@@ -629,7 +629,7 @@ local function performFullScriptShutdown()
     pcall(function()
         local pGui = LocalPlayer:FindFirstChild("PlayerGui") or game:GetService("CoreGui")
         local guiList = {
-            "Spooky_GUI", "Spooky_LoginGui", "Spooky_MobileToggle", "SpookyCamLockWidget", "SpookyTrackerWidget",
+            "Spooky_GUI", "Spooky_ESPCustomizer", "Spooky_LoginGui", "Spooky_MobileToggle", "SpookyCamLockWidget", "SpookyTrackerWidget",
             "SuperJumpWidget", "SpookySuperJumpWidget", "Spooky_HUDOverlay",
             "Spooky_Macro_Floating_Combo", "Spooky_ImportModal", "SpookyIslandTeleport",
             "SpookyIslandTeleportGui", "IslandTeleportGui", "SpookyShipCustomGui", "SpookyShipModWindow"
@@ -981,8 +981,9 @@ local NavButtons = {}
 local AllCardFrames = {}
 local AllUIButtons = {}
 local UIScale
-local currentBaseScale = _G.InitialUIScaleVal or 0.85
-local userCustomScale = _G.InitialUIScaleVal
+local savedInitialScale = tonumber(_G.InitialUIScaleVal)
+local currentBaseScale = math.min(savedInitialScale or 0.58, 0.60)
+local userCustomScale = savedInitialScale and math.min(savedInitialScale, 0.60) or nil
 
 local function computeScale()
     local camera = workspace.CurrentCamera
@@ -991,7 +992,7 @@ local function computeScale()
     local scaleX = (vp.X * 0.92) / 650
     local scaleY = (vp.Y * 0.90) / 369
     local minScale = math.min(scaleX, scaleY, 1)
-    return math.clamp(minScale * 0.95, 0.35, 1.0)
+    return math.clamp(minScale * 0.68, 0.50, 0.66)
 end
 _G.computeScale = computeScale
 local lastUIPos = nil
@@ -1023,21 +1024,21 @@ Spooky.UI.screen=ScreenGui
 
     MAINUIframe = Instance.new("Frame")
     MAINUIframe.Name = "MainFrame"
-    MAINUIframe.Size = UDim2.new(0, 650, 0, 369)
+    MAINUIframe.Size = UDim2.new(0, 760, 0, 430)
     MAINUIframe.Position = UDim2.new(0.5, 0, 0.5, 0)
     MAINUIframe.AnchorPoint = Vector2.new(0.5, 0.5)
-    MAINUIframe.BackgroundColor3 = Color3.fromRGB(9, 9, 13)
+    MAINUIframe.BackgroundColor3 = Color3.fromRGB(7, 8, 14)
     MAINUIframe.BorderSizePixel = 0
     MAINUIframe.ClipsDescendants = false
     MAINUIframe.Visible = false
     MAINUIframe.Parent = ScreenGui
 
     local UIFrameCorner = Instance.new("UICorner", MAINUIframe)
-    UIFrameCorner.CornerRadius = UDim.new(0, 8)
+    UIFrameCorner.CornerRadius = UDim.new(0, 18)
 
     local UIFrameStroke = Instance.new("UIStroke", MAINUIframe)
-    UIFrameStroke.Thickness = 1.5
-    UIFrameStroke.Color = Color3.fromRGB(9, 9, 13)
+    UIFrameStroke.Thickness = 1.2
+    UIFrameStroke.Color = Color3.fromRGB(80, 78, 110)
     UIFrameStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
     getgenv().SpookyUIFrame = MAINUIframe
@@ -1051,8 +1052,8 @@ Spooky.UI.screen=ScreenGui
     UIFrameWallpaper.BackgroundTransparency = 1
     UIFrameWallpaper.ScaleType = Enum.ScaleType.Crop
     UIFrameWallpaper.ZIndex = 1
-    UIFrameWallpaper.Image = "rbxassetid://98256258425377"
-    UIFrameWallpaper.ImageTransparency = 0.15
+    UIFrameWallpaper.Image = tostring(_G.SpookyUIBackgroundAsset or "rbxassetid://98256258425377")
+    UIFrameWallpaper.ImageTransparency = 0.28
     UIFrameWallpaper.Visible = true
     local UIFrameWallpaperCorner = Instance.new("UICorner", UIFrameWallpaper)
     UIFrameWallpaperCorner.CornerRadius = UIFrameCorner.CornerRadius
@@ -1082,8 +1083,9 @@ Spooky.UI.screen=ScreenGui
             return
         end
         if _G.InitialUIScaleVal then
-            currentBaseScale = _G.InitialUIScaleVal
-            if UIScale then UIScale.Scale = _G.InitialUIScaleVal end
+            local savedScale = math.min(tonumber(_G.InitialUIScaleVal) or 0.58, 0.60)
+            currentBaseScale = savedScale
+            if UIScale then UIScale.Scale = savedScale end
             return
         end
         currentBaseScale = computeScale()
@@ -1438,15 +1440,15 @@ Spooky.UI.screen=ScreenGui
 
     local LogsScroll = Instance.new("ScrollingFrame", MAINUIframe)
     LogsScroll.Name = "ScrollingFrame)logs)"
-    LogsScroll.Size = UDim2.new(0, 112, 0, 258)
-    LogsScroll.Position = UDim2.new(0.820, 0, 0, 96)
+    LogsScroll.Size = UDim2.new(0, 104, 0, 300)
+    LogsScroll.Position = UDim2.new(0.855, 0, 0, 82)
     LogsScroll.BackgroundTransparency = 1
     LogsScroll.BorderSizePixel = 0
     LogsScroll.ScrollBarThickness = 2
     LogsScroll.ScrollBarImageColor3 = Color3.fromRGB(60, 58, 80)
     LogsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     LogsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    LogsScroll.ZIndex = 10
+    LogsScroll.ZIndex = 12
 
     local logsLayout = Instance.new("UIListLayout", LogsScroll)
     logsLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -1507,8 +1509,8 @@ Spooky.UI.screen=ScreenGui
 
     local titleBanner = Instance.new("ImageLabel", MAINUIframe)
     titleBanner.Name = "tittle"
-    titleBanner.Size = UDim2.new(0, 390, 0, 85)
-    titleBanner.Position = UDim2.new(0, 135, 0, 6)
+    titleBanner.Size = UDim2.new(0, 430, 0, 72)
+    titleBanner.Position = UDim2.new(0, 190, 0, 10)
     titleBanner.BackgroundTransparency = 1
     titleBanner.BorderSizePixel = 0
     titleBanner.Image = "rbxassetid://139775297797213"
@@ -1520,7 +1522,7 @@ Spooky.UI.screen=ScreenGui
     local profileContainer = Instance.new("Frame", MAINUIframe)
     profileContainer.Name = "profileContainer"
     profileContainer.Size = UDim2.new(0, 72, 0, 72)
-    profileContainer.Position = UDim2.new(0, 294, 0, 98)
+    profileContainer.Position = UDim2.new(0, 420, 0, 88)
     profileContainer.BackgroundColor3 = Color3.fromRGB(16, 16, 24)
     profileContainer.BackgroundTransparency = 1
     profileContainer.BorderSizePixel = 0
@@ -1554,7 +1556,7 @@ Spooky.UI.screen=ScreenGui
     local welcomeLbl = Instance.new("TextLabel", MAINUIframe)
     welcomeLbl.Name = "welcomeLbl"
     welcomeLbl.Size = UDim2.new(0, 360, 0, 16)
-    welcomeLbl.Position = UDim2.new(0, 150, 0, 176)
+    welcomeLbl.Position = UDim2.new(0, 205, 0, 166)
     welcomeLbl.BackgroundTransparency = 1
     welcomeLbl.Font = Enum.Font.GothamBold
     welcomeLbl.Text = LocalPlayer.DisplayName or LocalPlayer.Name
@@ -1574,7 +1576,7 @@ Spooky.UI.screen=ScreenGui
     local HomeStatsContainer = Instance.new("Frame", MAINUIframe)
     HomeStatsContainer.Name = "HomeStatsContainer"
     HomeStatsContainer.Size = UDim2.new(0, 360, 0, 96)
-    HomeStatsContainer.Position = UDim2.new(0, 150, 0, 202)
+    HomeStatsContainer.Position = UDim2.new(0, 205, 0, 190)
     HomeStatsContainer.BackgroundTransparency = 1
     HomeStatsContainer.BorderSizePixel = 0
     HomeStatsContainer.ZIndex = 5
@@ -1624,7 +1626,7 @@ Spooky.UI.screen=ScreenGui
     local creditsBadge = Instance.new("Frame", MAINUIframe)
     creditsBadge.Name = "CreditsBadge"
     creditsBadge.Size = UDim2.new(0, 280, 0, 26)
-    creditsBadge.Position = UDim2.new(0, 190, 0, 312)
+    creditsBadge.Position = UDim2.new(0, 245, 0, 322)
     creditsBadge.BackgroundColor3 = Color3.fromRGB(15, 14, 22)
     creditsBadge.BackgroundTransparency = 0.35
     creditsBadge.BorderSizePixel = 0
@@ -1651,30 +1653,29 @@ Spooky.UI.screen=ScreenGui
     _G.SpookyThemedElements.creditsPersonLbl = creditsPersonLbl
     creditsPersonLbl.Name = "credits (person)"
     creditsPersonLbl.Size = UDim2.new(0, 360, 0, 1)
-    creditsPersonLbl.Position = UDim2.new(0, 150, 0, 340)
+    creditsPersonLbl.Position = UDim2.new(0, 205, 0, 400)
     creditsPersonLbl.BackgroundTransparency = 1
     creditsPersonLbl.Visible = false
     pcall(function()
         local function updateHomeStats()
             local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
-            if leaderstats then
-                local b = leaderstats:FindFirstChild("Bounty/Honor") or leaderstats:FindFirstChild("Bounty") or leaderstats:FindFirstChild("Honor")
-                if b then
-                    local num = tonumber(b.Value) or 0
-                    if num >= 1000000 then
-                        playerBountyLbl.Text = string.format("%.2fM", num / 1000000)
-                    elseif num >= 1000 then
-                        playerBountyLbl.Text = string.format("%.1fK", num / 1000)
-                    else
-                        playerBountyLbl.Text = tostring(num)
-                    end
-                end
-                local lvl = leaderstats:FindFirstChild("Level")
-                if lvl then
-                    playerLevelLbl.Text = "Level " .. tostring(lvl.Value)
-                end
+            local data = LocalPlayer:FindFirstChild("Data")
+            local b = leaderstats and (leaderstats:FindFirstChild("Bounty/Honor") or leaderstats:FindFirstChild("Bounty") or leaderstats:FindFirstChild("Honor"))
+            local lvl = (data and data:FindFirstChild("Level")) or (leaderstats and leaderstats:FindFirstChild("Level"))
+            local faction = LocalPlayer.Team and tostring(LocalPlayer.Team.Name) or "Pirates"
+            local statLabel = (string.lower(faction):find("marine", 1, true) ~= nil) and "Honor" or "Bounty"
+            if b then
+                local num = tonumber(b.Value) or 0
+                local formatted
+                if num >= 1000000 then formatted = string.format("%.2fM", num / 1000000)
+                elseif num >= 1000 then formatted = string.format("%.1fK", num / 1000)
+                else formatted = tostring(num) end
+                playerBountyLbl.Text = statLabel .. ": " .. formatted
+            else
+                playerBountyLbl.Text = statLabel .. ": --"
             end
-            if LocalPlayer.Team then teamLbl.Text = tostring(LocalPlayer.Team.Name) end
+            playerLevelLbl.Text = lvl and ("Level " .. tostring(lvl.Value)) or "Level --"
+            if LocalPlayer.Team then teamLbl.Text = faction end
             playerNameLbl.Text = LocalPlayer.DisplayName or LocalPlayer.Name
         end
         updateHomeStats()
@@ -1683,14 +1684,38 @@ Spooky.UI.screen=ScreenGui
             for _, stat in ipairs(ls:GetChildren()) do
                 stat.Changed:Connect(updateHomeStats)
             end
+            ls.ChildAdded:Connect(function(stat)
+                stat.Changed:Connect(updateHomeStats)
+                updateHomeStats()
+            end)
         end
+        local data = LocalPlayer:FindFirstChild("Data")
+        if data then
+            local level = data:FindFirstChild("Level")
+            if level then level.Changed:Connect(updateHomeStats) end
+            data.ChildAdded:Connect(function(child)
+                if child.Name == "Level" then child.Changed:Connect(updateHomeStats) end
+                updateHomeStats()
+            end)
+        end
+        LocalPlayer.ChildAdded:Connect(function(child)
+            if child.Name == "Data" then
+                local level = child:FindFirstChild("Level")
+                if level then level.Changed:Connect(updateHomeStats) end
+                child.ChildAdded:Connect(function(grandChild)
+                    if grandChild.Name == "Level" then grandChild.Changed:Connect(updateHomeStats) end
+                    updateHomeStats()
+                end)
+                updateHomeStats()
+            end
+        end)
         LocalPlayer:GetPropertyChangedSignal("Team"):Connect(updateHomeStats)
     end)
 
     local centerPagesBg = Instance.new("Frame", MAINUIframe)
     centerPagesBg.Name = "center pages bg"
-    centerPagesBg.Size = UDim2.new(0, 404, 0, 369)
-    centerPagesBg.Position = UDim2.new(0, 128, 0, 0)
+    centerPagesBg.Size = UDim2.new(0, 570, 0, 430)
+    centerPagesBg.Position = UDim2.new(0, 154, 0, 0)
     centerPagesBg.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
     centerPagesBg.BackgroundTransparency = 0
     centerPagesBg.BorderSizePixel = 0
@@ -1700,8 +1725,8 @@ Spooky.UI.screen=ScreenGui
 
     PagesFolder = Instance.new("Frame", MAINUIframe)
     PagesFolder.Name = "Pages"
-    PagesFolder.Size = UDim2.new(0, 404, 0, 353)
-    PagesFolder.Position = UDim2.new(0, 128, 0, 8)
+    PagesFolder.Size = UDim2.new(0, 554, 0, 414)
+    PagesFolder.Position = UDim2.new(0, 162, 0, 8)
     PagesFolder.BackgroundTransparency = 1
     PagesFolder.BorderSizePixel = 0
     PagesFolder.ZIndex = 8
@@ -1727,13 +1752,13 @@ Spooky.UI.screen=ScreenGui
 
     local SidebarScroll = Instance.new("ScrollingFrame", MAINUIframe)
     SidebarScroll.Name = "ScrollingFrame(ventanas \"combat,home,etc..)"
-    SidebarScroll.Size = UDim2.new(0, 112, 0, 235)
-    SidebarScroll.Position = UDim2.new(0, 8, 0, 126)
+    SidebarScroll.Size = UDim2.new(0, 136, 0, 320)
+    SidebarScroll.Position = UDim2.new(0, 10, 0, 78)
     SidebarScroll.BackgroundTransparency = 1
     SidebarScroll.BorderSizePixel = 0
     SidebarScroll.ScrollBarThickness = 2
     SidebarScroll.ScrollBarImageColor3 = Color3.fromRGB(65, 65, 85)
-    SidebarScroll.CanvasSize = UDim2.new(0, 0, 0, 680)
+    SidebarScroll.CanvasSize = UDim2.new(0, 0, 0, 620)
     SidebarScroll.ScrollingDirection = Enum.ScrollingDirection.Y
     SidebarScroll.ZIndex = 8
 
@@ -1746,21 +1771,15 @@ Spooky.UI.screen=ScreenGui
         { id = "Home",          label = "Home" },
         { id = "Combat",        label = "Combat" },
         { id = "SpookyBounty",  label = "Auto Bounty" },
-        { id = "ControlPeople", label = "Player list" },
         { id = "Cheats",        label = "Cheats" },
         { id = "FFlags",        label = "ffflags" },
-        { id = "Macro",         label = "Macro" },
         { id = "Keybinds",      label = "Keybinds" },
         { id = "Color",         label = "Color" },
         { id = "Visual",        label = "Visuals" },
         { id = "HUD",           label = "Hud" },
-        { id = "Dungeons",      label = "Dungeons" },
-        { id = "TPIslands",     label = "Tp Map" },
         { id = "UI",            label = "UI" },
         { id = "Misc",          label = "Misc" },
         { id = "Configs",       label = "Configs" },
-        { id = "Report",        label = "Report" },
-        { id = "Functions",     label = "Functions" },
     }
 
     local function resolveCanonicalTabId(name)
@@ -1776,14 +1795,10 @@ Spooky.UI.screen=ScreenGui
             return "SpookyBounty"
         elseif norm == "kitsunebounty" or norm == "kitautobounty" or norm == "kitbounty" or norm == "kitsune" then
             return "SpookyBounty"
-        elseif norm == "controlpeople" or norm == "playerlist" or norm == "players" or norm == "other" or norm == "jugadores" or norm == "player" then
-            return "ControlPeople"
         elseif norm == "cheats" or norm == "glitches" or norm == "trucos" then
             return "Cheats"
         elseif norm == "fflags" or norm == "ffflags" or norm == "fastflags" or norm == "flags" then
             return "FFlags"
-        elseif norm == "macro" or norm == "macros" then
-            return "Macro"
         elseif norm == "keybinds" or norm == "keybind" or norm == "atajos" or norm == "teclas" then
             return "Keybinds"
         elseif norm == "color" or norm == "colors" or norm == "sacredvfx" or norm == "vfx" or norm == "colores" then
@@ -1792,20 +1807,12 @@ Spooky.UI.screen=ScreenGui
             return "Visual"
         elseif norm == "hud" then
             return "HUD"
-        elseif norm == "dungeons" or norm == "dougeons" or norm == "dungeon" or norm == "mazmorras" then
-            return "Dungeons"
-        elseif norm == "tpislands" or norm == "tpmap" or norm == "map" or norm == "islands" or norm == "teleport" or norm == "mapatp" then
-            return "TPIslands"
         elseif norm == "ui" or norm == "interface" or norm == "interfaz" or norm == "gui" then
             return "UI"
         elseif norm == "misc" or norm == "varios" or norm == "miscellaneous" then
             return "Misc"
         elseif norm == "configs" or norm == "config" or norm == "profiles" or norm == "ajustes" or norm == "configuraciones" then
             return "Configs"
-        elseif norm == "report" or norm == "reportar" or norm == "bugreport" or norm == "feedback" then
-            return "Report"
-        elseif norm == "functions" or norm == "funciones" or norm == "func" or norm == "function" then
-            return "Functions"
         end
 
         return "Home"
@@ -1883,16 +1890,9 @@ Spooky.UI.screen=ScreenGui
                         isTarget = true
                     elseif canonId == "KitsuneBounty" and page.Name == "KitsuneBounty_Page" then
                         isTarget = true
-                    elseif canonId == "ControlPeople" and page.Name == "ControlPeople_Page" then
-                        isTarget = true
-                        if _G.SpookyRefreshPlayerList then
-                            task.defer(function() pcall(_G.SpookyRefreshPlayerList) end)
-                        end
                     elseif canonId == "Cheats" and (page.Name == "Glitches_Page" or page.Name == "Cheats_Page") then
                         isTarget = true
                     elseif canonId == "FFlags" and page.Name == "FFlags_Page" then
-                        isTarget = true
-                    elseif canonId == "Macro" and page.Name == "Macro_Page" then
                         isTarget = true
                     elseif canonId == "Keybinds" and page.Name == "Keybinds_Page" then
                         isTarget = true
@@ -1902,19 +1902,11 @@ Spooky.UI.screen=ScreenGui
                         isTarget = true
                     elseif canonId == "HUD" and page.Name == "HUD_Page" then
                         isTarget = true
-                    elseif canonId == "Dungeons" and page.Name == "Dungeons_Page" then
-                        isTarget = true
-                    elseif canonId == "TPIslands" and page.Name == "TPIslands_Page" then
-                        isTarget = true
                     elseif canonId == "UI" and page.Name == "UI_Page" then
                         isTarget = true
                     elseif canonId == "Misc" and page.Name == "Misc_Page" then
                         isTarget = true
                     elseif canonId == "Configs" and page.Name == "Configs_Page" then
-                        isTarget = true
-                    elseif canonId == "Report" and page.Name == "Report_Page" then
-                        isTarget = true
-                    elseif canonId == "Functions" and page.Name == "Functions_Page" then
                         isTarget = true
                     end
                 end
@@ -2349,7 +2341,7 @@ end
 getgenv().SetSpookyTransparentMode = setSpookyTransparentMode
 
 local translateTerm = nil
-local function makeCard(parent, titleEN, titleES, h, y)
+function makeCard(parent, titleEN, titleES, h, y)
     local card = Instance.new("Frame")
     card:SetAttribute("SpookyControlGroup", titleEN)
     card.Size = UDim2.new(1, -10, 0, h)
@@ -2428,7 +2420,7 @@ local function makeCard(parent, titleEN, titleES, h, y)
     return card
 end
 if _G.SpookyStartupStage then _G.SpookyStartupStage("controls") end
-local function createToggleButton(parent, name, textEN, textES, size, pos, isSub)
+function createToggleButton(parent, name, textEN, textES, size, pos, isSub)
     local btn = Instance.new("TextButton")
     btn.Name = name
     btn.Size = size
@@ -2520,7 +2512,7 @@ local function createToggleButton(parent, name, textEN, textES, size, pos, isSub
     btn.Activated:Connect(onToggleActivated)
     return btn
 end
-local function createActionButton(parent, textEN, textES, size, pos, onClick)
+function createActionButton(parent, textEN, textES, size, pos, onClick)
     local btn = Instance.new("TextButton")
     btn.Size = size
     btn.Position = pos
@@ -2588,7 +2580,7 @@ local function createActionButton(parent, textEN, textES, size, pos, onClick)
     return btn
 end
 
-local function createSlider(parent, textEN, textES, minV, maxV, defV, isFloat, step, suffix, callback, pos)
+function createSlider(parent, textEN, textES, minV, maxV, defV, isFloat, step, suffix, callback, pos)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -12, 0, 38)
     frame.Position = pos or UDim2.new(0, 6, 0, 26)
@@ -2693,7 +2685,7 @@ local function createSlider(parent, textEN, textES, minV, maxV, defV, isFloat, s
     })
     return frame
 end
-local function createCycleButton(parent, prefixEN, prefixES, choices, defaultIdx, size, pos, onChange)
+function createCycleButton(parent, prefixEN, prefixES, choices, defaultIdx, size, pos, onChange)
     local currentIdx = defaultIdx or 1
     local btn = Instance.new("TextButton")
     btn.Size = size
@@ -2776,7 +2768,7 @@ local function createCycleButton(parent, prefixEN, prefixES, choices, defaultIdx
     return btn
 end
 
-local function styleSpookyTextBox(box)
+function styleSpookyTextBox(box)
     if not box or not box:IsA("TextBox") then return end
     if box.Text == "TextBox" or box.Text == "textbox" then
         box.Text = ""
@@ -2853,7 +2845,7 @@ local UI_DICTIONARY = {
     ["ABRIR PESTANA KEYBINDS"] = { PT = "ABRIR ABA DE TECLAS E ATALHOS ->", TL = "BUKSAN ANG TAB NG KEYBINDS ->", FR = "OUVRIR ONGLET RACCOURCIS ->", ES = "ABRIR PESTANA KEYBINDS", EN = "OPEN KEYBINDS & SHORTCUTS TAB ->" },
     ["APLICAR POR ID"] = { PT = "APLICAR POR ID", TL = "ILAPAT GAMIT ANG ID", FR = "APPLIQUER PAR ID", ES = "APLICAR POR ID", EN = "APPLY BY ID" },
     ["APPLY BY ID"] = { PT = "APLICAR POR ID", TL = "ILAPAT GAMIT ANG ID", FR = "APPLIQUER PAR ID", ES = "APLICAR POR ID", EN = "APPLY BY ID" },
-    ["Activar Filtro Lista Negra"] = { PT = "Ativar Filtro de Lista Negra", TL = "Paganahin ang Blacklist Filter", FR = "Activer Filtre Liste Noire", ES = "Activar Filtro Lista Negra", EN = "Enable Blacklist Filter" },
+    ["Activar Filtro Lista Blanca"] = { PT = "Ativar Filtro de Lista Branca", TL = "Paganahin ang Whitelist Filter", FR = "Activer Filtre Liste Blanche", ES = "Activar Filtro Lista Blanca", EN = "Enable Whitelist Filter" },
     ["Activar Macro"] = { PT = "Ativar Macro", TL = "Paganahin ang Macro", FR = "Activer Macro", ES = "Activar Macro", EN = "Enable Macro" },
     ["Actualizar"] = { PT = "Atualizar", TL = "Sariwain", FR = "Actualiser", ES = "Actualizar", EN = "Refresh" },
     ["Administrador de Keybinds PC"] = { PT = "Gerenciador de Teclas PC", TL = "Tagapamahala ng Keybinds PC", FR = "Gestionnaire de Raccourcis PC", ES = "Administrador de Keybinds PC", EN = "PC Keybinds Manager" },
@@ -3007,7 +2999,7 @@ local UI_DICTIONARY = {
     ["EXECUTE COMBO"] = { PT = "EXECUTAR COMBO", TL = "IPATUPAD ANG COMBO", FR = "EXECUTER COMBO", ES = "EJECUTAR COMBO", EN = "EXECUTE COMBO" },
     ["Ejecutar Codigo"] = { PT = "Executar Codigo", TL = "Ipatupad ang Code", FR = "Executer le Code", ES = "Ejecutar Codigo", EN = "Execute Code" },
     ["Ejecutar Combo"] = { PT = "Executar Combo", TL = "Ipatupad ang Combo", FR = "Executer Combo", ES = "Ejecutar Combo", EN = "Execute Combo" },
-    ["Enable Blacklist Filter"] = { PT = "Ativar Filtro de Lista Negra", TL = "Paganahin ang Blacklist Filter", FR = "Activer Filtre Liste Noire", ES = "Activar Filtro Lista Negra", EN = "Enable Blacklist Filter" },
+    ["Enable Whitelist Filter"] = { PT = "Ativar Filtro de Lista Branca", TL = "Paganahin ang Whitelist Filter", FR = "Activer Filtre Liste Blanche", ES = "Activar Filtro Lista Blanca", EN = "Enable Whitelist Filter" },
     ["Enable Macro"] = { PT = "Ativar Macro", TL = "Paganahin ang Macro", FR = "Activer Macro", ES = "Activar Macro", EN = "Enable Macro" },
     ["English"] = { PT = "Ingles", TL = "Ingles", FR = "Anglais", ES = "Inglés", EN = "English" },
     ["Enviar"] = { PT = "Enviar", TL = "Ipadala", FR = "Envoyer", ES = "Enviar", EN = "Send" },
@@ -3135,8 +3127,8 @@ local UI_DICTIONARY = {
     ["Language"] = { PT = "Idioma", TL = "Wika", FR = "Langue", ES = "Idioma", EN = "Language" },
     ["Limpiar"] = { PT = "Limpar", TL = "Linisin", FR = "Effacer", ES = "Limpiar", EN = "Clear" },
     ["Limpiar BL"] = { PT = "Limpar BL", TL = "Linisin ang BL", FR = "Effacer BL", ES = "Limpiar BL", EN = "Clear BL" },
-    ["Limpiar Lista"] = { PT = "Limpar Lista Negra", TL = "I-reset ang Blacklist", FR = "Reinitialiser Liste Noire", ES = "Limpiar Lista", EN = "Reset Blacklist" },
-    ["Lista Negra de Habilidades"] = { PT = "Lista Negra de Habilidades", TL = "Blacklist ng Kakayahan", FR = "Liste Noire de Competences", ES = "Lista Negra de Habilidades", EN = "Skill Blacklist" },
+    ["Limpiar Lista Blanca"] = { PT = "Limpar Lista Branca", TL = "I-reset ang Whitelist", FR = "Reinitialiser Liste Blanche", ES = "Limpiar Lista Blanca", EN = "Reset Whitelist" },
+    ["Lista Blanca de Habilidades"] = { PT = "Lista Blanca de Habilidades", TL = "Whitelist ng Kakayahan", FR = "Liste Blanche de Competences", ES = "Lista Blanca de Habilidades", EN = "Skill Whitelist" },
     ["Load Spooky Preset"] = { PT = "Spooky Full Flags", TL = "Spooky Full Flags", FR = "Spooky Full Flags", ES = "Spooky Full Flags", EN = "Spooky Full Flags" },
     ["Load Global Config"] = { PT = "Carregar Config Global", TL = "I-load ang Global Config", FR = "Charger Config Globale", ES = "Cargar Global", EN = "Load Global Config" },
     ["Load Macro"] = { PT = "Carregar Macro", TL = "I-load ang Macro", FR = "Charger Macro", ES = "Cargar Macro", EN = "Load Macro" },
@@ -3244,7 +3236,7 @@ local UI_DICTIONARY = {
     ["Reportar Bug"] = { PT = "Relatorio", TL = "Mag-ulat", FR = "Signaler", ES = "Reportar Bug", EN = "Report" },
     ["Reportes y Sugerencias"] = { PT = "Relatorios e Sugestoes", TL = "Ulat at Mungkahi", FR = "Retours et Suggestions", ES = "Reportes y Sugerencias", EN = "Feedback & Suggestions" },
     ["Reset"] = { PT = "Redefinir", TL = "I-reset", FR = "Reinitialiser", ES = "Reiniciar", EN = "Reset" },
-    ["Reset Blacklist"] = { PT = "Limpar Lista Negra", TL = "I-reset ang Blacklist", FR = "Reinitialiser Liste Noire", ES = "Limpiar Lista", EN = "Reset Blacklist" },
+    ["Reset Whitelist"] = { PT = "Limpar Lista Branca", TL = "I-reset ang Whitelist", FR = "Reinitialiser Liste Blanche", ES = "Limpiar Lista Blanca", EN = "Reset Whitelist" },
     ["Reset Config to Defaults"] = { PT = "Restaurar Padroes", TL = "Ibalik sa Default", FR = "Restaurer Valeurs par Defaut", ES = "Restablecer Ajustes por Defecto", EN = "Reset Config to Defaults" },
     ["Reset Filter"] = { PT = "Redefinir Filtro", TL = "I-reset ang Filter", FR = "Reinitialiser Filtre", ES = "Reiniciar Filtro", EN = "Reset Filter" },
     ["Reset Layout"] = { PT = "Redefinir Layout", TL = "I-reset ang Layout", FR = "Reinitialiser Disposition", ES = "Restablecer", EN = "Reset Layout" },
@@ -3293,7 +3285,7 @@ local UI_DICTIONARY = {
     ["Sin Sombras"] = { PT = "Sem Sombras", TL = "Walang Anino", FR = "Sans Ombres", ES = "Sin Sombras", EN = "No Shadows" },
     ["Sincronizar Color Portal"] = { PT = "Sincronizar Cor do Portal", TL = "I-sync ang Kulay ng Portal", FR = "Synchroniser Couleur Portal", ES = "Sincronizar Color Portal", EN = "Sync Portal Color Now" },
     ["Skill"] = { PT = "Habilidade", TL = "Kakayahan", FR = "Competence", ES = "Habilidad", EN = "Skill" },
-    ["Skill Blacklist"] = { PT = "Lista Negra de Habilidades", TL = "Blacklist ng Kakayahan", FR = "Liste Noire de Competences", ES = "Lista Negra de Habilidades", EN = "Skill Blacklist" },
+    ["Skill Whitelist"] = { PT = "Lista Blanca de Habilidades", TL = "Whitelist ng Kakayahan", FR = "Liste Blanche de Competences", ES = "Lista Blanca de Habilidades", EN = "Skill Whitelist" },
     ["Skill Soru"] = { PT = "Skill Soru", TL = "Skill Soru", FR = "Skill Soru", ES = "Skill Soru", EN = "Skill Soru" },
     ["Skin Changer y Hotbar Portal"] = { PT = "Skin Changer Portal e Hotbar", TL = "Portal Skin Changer at Hotbar", FR = "Changeur Skin Portal et Hotbar", ES = "Skin Changer y Hotbar Portal", EN = "Portal Fruit Skin Changer & Hotbar" },
     ["Skip Target"] = { PT = "Pular Alvo", TL = "Laktawan ang Target", FR = "Passer la Cible", ES = "Saltar Objetivo", EN = "Skip Target" },
@@ -3582,7 +3574,7 @@ local isTweeningIsland = false
 local islandNoclipConn = nil
 local activeTweenTargetName = nil
 local onIslandTweenStateChanged = nil
-local function CheckNearestTeleporter(targetPos)
+function CheckNearestTeleporter(targetPos)
     local pos = typeof(targetPos) == "CFrame" and targetPos.Position or targetPos
     local minDist = math.huge
     local nearest = nil
@@ -3624,7 +3616,7 @@ local function CheckNearestTeleporter(targetPos)
     end
     return nil
 end
-local function stopIslandTween()
+function stopIslandTween()
     _G.stopIslandTween = stopIslandTween
     isTweeningIsland = false
     activeIslandTargetCF = nil
@@ -3648,7 +3640,7 @@ local function stopIslandTween()
     notifyToggle("Island Tween: STOPPED (OFF)", false)
 end
 local activeIslandTargetCF = nil
-local function updateRunningIslandTweenSpeed()
+function updateRunningIslandTweenSpeed()
     if isTweeningIsland and currentIslandTween and activeIslandTargetCF then
         local char = LocalPlayer.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -3671,7 +3663,7 @@ local function updateRunningIslandTweenSpeed()
         end
     end
 end
-local function startIslandTween(targetCF, islandName)
+function startIslandTween(targetCF, islandName)
     stopIslandTween()
     local char = LocalPlayer.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -3737,7 +3729,7 @@ end
 local ServerBrowserGui = nil
 local BestServersGui = nil
 local isFetchingServers = false
-local function enableAntiTeleportFail()
+function enableAntiTeleportFail()
     pcall(function()
         local CoreGui = game:GetService("CoreGui")
         local promptOverlay = CoreGui:FindFirstChild("RobloxPromptGui")
@@ -3768,7 +3760,7 @@ local function enableAntiTeleportFail()
         end)
     end)
 end
-local function checkInCombat()
+function checkInCombat()
     local inCombat = false
     pcall(function()
         local pGui = LocalPlayer:FindFirstChild("PlayerGui")
@@ -3782,7 +3774,7 @@ local function checkInCombat()
     return inCombat
 end
 local isTeleporting = false
-local function teleportToServer(jobId)
+function teleportToServer(jobId)
     if not jobId or jobId == "" or jobId == game.JobId then return false end
     if isTeleporting then return false end
     if checkInCombat() then
@@ -3820,7 +3812,7 @@ local function teleportToServer(jobId)
     end)
     return true
 end
-local function rejoinCurrentServer()
+function rejoinCurrentServer()
     enableAntiTeleportFail()
     notifyToggle("Rejoining game...", true)
     local ok = false
@@ -3842,7 +3834,7 @@ local maxPlayerServerFilter = 10
 local isFetchingServers = false
 local cachedServerList = {}
 local refreshServerDisplay = function() end
-local function setServerRegion(region)
+function setServerRegion(region)
     selectedServerRegion = region or "Auto"
     pcall(function()
         local sbGui = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("ServerBrowser")
@@ -3853,7 +3845,7 @@ local function setServerRegion(region)
     notifyToggle("Region: " .. selectedServerRegion, true)
     if refreshServerDisplay then pcall(refreshServerDisplay) end
 end
-local function httpGetRaw(url)
+function httpGetRaw(url)
     local req = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
     if req then
         local ok, r = pcall(function()
@@ -3873,7 +3865,7 @@ local function httpGetRaw(url)
     end
     return nil
 end
-local function fetchBestServers(onComplete)
+function fetchBestServers(onComplete)
     if isFetchingServers then
         if onComplete then onComplete(cachedServerList or {}) end
         return
@@ -3958,7 +3950,7 @@ local function fetchBestServers(onComplete)
         finalize()
     end)
 end
-local function quickHopLowestPing(maxCount)
+function quickHopLowestPing(maxCount)
 _G.quickHopLowestPing = quickHopLowestPing
     local maxC = maxCount or maxPlayerServerFilter or 9
     if checkInCombat() then
@@ -4006,7 +3998,7 @@ end
 if type(getgenv) == "function" then
     pcall(function() getgenv().HopServer = quickHopLowestPing end)
 end
-local function openServerBrowserModal()
+function openServerBrowserModal()
     if globalShowTab then
         globalShowTab("ServerBrowser")
     end
@@ -4014,7 +4006,7 @@ end
 _G.OpenServerBrowser = openServerBrowserModal
 _G.OpenBestServers = openServerBrowserModal
 local IslandTeleportGui = nil
-local function openIslandTeleportWindow()
+function openIslandTeleportWindow()
     if IslandTeleportGui and IslandTeleportGui.Parent then
         IslandTeleportGui:Destroy()
         IslandTeleportGui = nil
@@ -4596,7 +4588,7 @@ end
 
 local MacroEditorGui = nil
 local SelectedSoruTarget = "Nearest"
-local function getClientPing()
+function getClientPing()
     local ping = nil
     pcall(function()
         if LocalPlayer and LocalPlayer.GetNetworkPing then
@@ -4627,7 +4619,7 @@ local function getClientPing()
     end
     return math.clamp(ping or 45, 8, 999)
 end
-local function getToolCategory(tool)
+function getToolCategory(tool)
     if not tool then return "Melee" end
     local tName = string.lower(tool.Name)
     local tt = ""
@@ -6736,7 +6728,7 @@ do
             if TrackerGui then pcall(function() TrackerGui:Destroy() end); TrackerGui = nil end
         end
     end
-local function _initCamLockSystem()
+function _initCamLockSystem()
     local CamLockGui = nil
     local camLockActive = false
     local camLockTargetPlayer = nil
@@ -7001,7 +6993,7 @@ local currentBorderThickness = 1.5
 local currentCornerRadius = 8
 local currentUIFontName = "GothamBold"
 
-local function setPanelTransparency(alpha)
+function setPanelTransparency(alpha)
     currentPanelTransparency = math.clamp(alpha or 0, 0, 0.95)
     pcall(function()
         local el = _G.SpookyThemedElements
@@ -7019,14 +7011,14 @@ local function setPanelTransparency(alpha)
 end
 _G.SpookySetPanelTransparency = setPanelTransparency
 
-local function applyBorderColor(color)
+function applyBorderColor(color)
     if getgenv().SpookyUIStroke then
         getgenv().SpookyUIStroke.Color = color
     end
 end
 _G.SpookyApplyBorderColor = applyBorderColor
 
-local function applyFontToAll(fontEnum, fontName)
+function applyFontToAll(fontEnum, fontName)
     if fontName then currentUIFontName = fontName end
     for _, desc in ipairs(MAINUIframe:GetDescendants()) do
         if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
@@ -7040,7 +7032,7 @@ local function applyFontToAll(fontEnum, fontName)
 end
 _G.SpookyApplyFontToAll = applyFontToAll
 
-local function applyBorderThickness(thickness)
+function applyBorderThickness(thickness)
     currentBorderThickness = thickness
     if getgenv().SpookyUIStroke then
         getgenv().SpookyUIStroke.Thickness = thickness
@@ -7048,7 +7040,7 @@ local function applyBorderThickness(thickness)
 end
 _G.SpookyApplyBorderThickness = applyBorderThickness
 
-local function applyCornerRadius(radiusPx)
+function applyCornerRadius(radiusPx)
     currentCornerRadius = radiusPx
     for _, desc in ipairs(MAINUIframe:GetDescendants()) do
         if desc:IsA("UICorner") then
@@ -7099,7 +7091,7 @@ applyWallpaper = function(assetId, opacity)
 end
 _G.SpookyApplyWallpaper = applyWallpaper
 
-local function applyOverlayEffect(effectType)
+function applyOverlayEffect(effectType)
     if getgenv().SpookyUIOverlay then
         if effectType == "Tech Grid Pattern" then
             getgenv().SpookyUIOverlay.Image = "rbxassetid://12975543160"
@@ -7153,7 +7145,7 @@ local originalUILayout = {
     MobileToggle = { Position = UDim2.new(0, 20, 0, 80), Size = UDim2.new(0, 52, 0, 52) }
 }
 
-local function saveUILayout()
+function saveUILayout()
     pcall(function()
         if writefile then
             local layoutData = {}
@@ -7177,7 +7169,7 @@ local function saveUILayout()
 end
 _G.SpookySaveLayout = saveUILayout
 
-local function resetUILayout()
+function resetUILayout()
     pcall(function()
         if _G.SpookySideLayout then
             _G.SpookySideLayout.Enabled = true
@@ -7206,7 +7198,7 @@ local function resetUILayout()
 end
 _G.SpookyResetLayout = resetUILayout
 
-local function loadUILayout()
+function loadUILayout()
     pcall(function()
         if isfile and isfile("ProjectSpooky_UILayout.json") and readfile then
             local raw = readfile("ProjectSpooky_UILayout.json")
@@ -7228,7 +7220,7 @@ local function loadUILayout()
     end)
 end
 
-local function toggleEditUIMode(enable)
+function toggleEditUIMode(enable)
     isEditModeActive = false
     _G.isEditModeActive = false
     if studioToolbar and studioToolbar.Parent then
@@ -8136,14 +8128,14 @@ do
 
     do
 
-local function mathClamp(val, minV, maxV)
+function mathClamp(val, minV, maxV)
     if math.clamp then return math.clamp(val, minV, maxV) end
     if val < minV then return minV end
     if val > maxV then return maxV end
     return val
 end
 
-local function showSpookyNotice(title, desc, isSuccess)
+function showSpookyNotice(title, desc, isSuccess)
     pcall(function()
         if notifyToggle then
             notifyToggle(title .. ": " .. desc, isSuccess)
@@ -8171,7 +8163,7 @@ for i = 1, 64 do
     B64_LOOKUP[B64_CHARS:sub(i, i)] = i - 1
 end
 
-local function base64Encode(data)
+function base64Encode(data)
     if not data or #data == 0 then return "" end
 
     if crypt and crypt.base64encode then
@@ -8217,7 +8209,7 @@ local function base64Encode(data)
     return table.concat(out)
 end
 
-local function base64Decode(data)
+function base64Decode(data)
     if not data or #data == 0 then return "" end
 
     if crypt and crypt.base64decode then
@@ -8266,7 +8258,7 @@ end
 Agent2_MacroConfigs.base64Encode = base64Encode
 Agent2_MacroConfigs.base64Decode = base64Decode
 
-local function exportMacroConfig()
+function exportMacroConfig()
     local payload = {
         type = "MACRO",
         version = 2,
@@ -8289,7 +8281,7 @@ local function exportMacroConfig()
     return encoded
 end
 
-local function exportUIConfig()
+function exportUIConfig()
     local animName, animDur = "Pop", 0.28
     if _G.SpookyGetUIAnimation then
         pcall(function() animName, animDur = _G.SpookyGetUIAnimation() end)
@@ -8319,7 +8311,7 @@ local function exportUIConfig()
     return encoded
 end
 
-local function exportFullConfig()
+function exportFullConfig()
     local activeFeats = {}
     for featName, state in pairs(FeatureStates) do
         if state == true then
@@ -8445,7 +8437,7 @@ Spooky.CreateDefaultSlot=function(name)
     for i=1,10 do slot.steps[i]=Spooky.CreateDefaultBlock() end
     return slot
 end
-local function applyMacroConfigData(data)
+function applyMacroConfigData(data)
     if _G.SpookyStopMacro then _G.SpookyStopMacro() end
     if not data or type(data) ~= "table" then return false end
 
@@ -8527,7 +8519,7 @@ local function applyMacroConfigData(data)
     return true
 end
 
-local function applyUIConfigData(data)
+function applyUIConfigData(data)
     if not data or type(data) ~= "table" then return false end
     local success,configError=pcall(function()
         local t = data.theme or data.t
@@ -8580,7 +8572,7 @@ local function applyUIConfigData(data)
     return true
 end
 
-local function applyGlobalConfigData(data)
+function applyGlobalConfigData(data)
     if not data or type(data) ~= "table" then return false end
     if data.PlayerBlacklist then Spooky.RestorePlayerBlacklist(data.PlayerBlacklist) end
 
@@ -8657,7 +8649,7 @@ local function applyGlobalConfigData(data)
     return true
 end
 
-local function importConfigString(str)
+function importConfigString(str)
     if not str or type(str) ~= "string" then
         showSpookyNotice("Import Config", "Pega un código de configuración válido!", false)
         return false, "No data provided"
@@ -9309,210 +9301,429 @@ end
         importModal.Visible = false
     end)
 
-    local masterCard = makeCard(ConfigsPage, "Profiles", "Perfiles", 144, 82)
-    masterCard.ZIndex = 4
+    -- Modern config manager: one directory, one file per config, explicit selection.
+    local CONFIG_DIR = "Spooky/Configs"
+    local CONFIG_AUTOLOAD_FILE = "Spooky_AutoLoad_ConfigPath.txt"
+
+    local function ensureConfigDirectory()
+        pcall(function()
+            if makefolder and (not isfolder or not isfolder("Spooky")) then
+                makefolder("Spooky")
+            end
+        end)
+        pcall(function()
+            if makefolder and (not isfolder or not isfolder(CONFIG_DIR)) then
+                makefolder(CONFIG_DIR)
+            end
+        end)
+    end
+
+    local function sanitizeConfigName(name)
+        name = tostring(name or "")
+        name = name:gsub("[%c]", ""):gsub("[\\/:*?\"<>|]", "_"):gsub("^%s+", ""):gsub("%s+$", "")
+        name = name:gsub("%.json$", "")
+        if #name > 48 then name = name:sub(1, 48) end
+        return name
+    end
+
+    local function configFilePath(name)
+        return CONFIG_DIR .. "/" .. sanitizeConfigName(name) .. ".json"
+    end
+
+    local function listConfigNames()
+        ensureConfigDirectory()
+        local result = {}
+        pcall(function()
+            if listfiles then
+                for _, path in ipairs(listfiles(CONFIG_DIR)) do
+                    local normalized = tostring(path):gsub("\\", "/")
+                    local file = normalized:match("([^/]+)$")
+                    if file and file:lower():sub(-5) == ".json" then
+                        table.insert(result, file:sub(1, -6))
+                    end
+                end
+            end
+        end)
+        table.sort(result, function(a, b) return a:lower() < b:lower() end)
+        return result
+    end
+
+    local function writeConfigFile(name, data)
+        ensureConfigDirectory()
+        if not writefile then error("writefile unavailable") end
+        writefile(configFilePath(name), data)
+    end
+
+    local function readConfigFile(name)
+        local path = configFilePath(name)
+        if not (isfile and isfile(path) and readfile) then
+            return nil
+        end
+        return readfile(path)
+    end
+
+    local function deleteConfigFile(name)
+        local path = configFilePath(name)
+        if delfile and isfile and isfile(path) then
+            delfile(path)
+            return true
+        end
+        return false
+    end
+
+    local selectedConfigName = nil
+    local configRows = {}
+    local configListFrame
+    local configNameInput
+    local configSelectedLabel
+    local configCountLabel
+    local refreshConfigList
+
+    local function applyNamedConfig(name)
+        local raw = readConfigFile(name)
+        if not raw or raw == "" then
+            notifyToggle("Config not found: " .. tostring(name), false)
+            return false
+        end
+        local ok = applyCompactConfigString(raw)
+        if not ok then
+            local jsonOK, data = pcall(function() return HttpService:JSONDecode(raw) end)
+            if jsonOK and type(data) == "table" then
+                ok = _G.SpookyApplyGlobalConfig and pcall(_G.SpookyApplyGlobalConfig, data)
+            end
+        end
+        if ok then
+            selectedConfigName = name
+            if configNameInput then configNameInput.Text = name end
+            if configSelectedLabel then configSelectedLabel.Text = "Selected: " .. name end
+            notifyToggle("Loaded config: " .. name, true)
+            return true
+        end
+        notifyToggle("Invalid config: " .. name, false)
+        return false
+    end
 
     _G.Spooky_LoadFullConfig = function(pathOverride)
         pcall(function()
-            local json = nil
-            local configPath = pathOverride or "Spooky_GlobalFullConfig.json"
-            if isfile and isfile(configPath) and readfile then
-                json = readfile(configPath)
+            local json
+            if pathOverride and isfile and isfile(pathOverride) and readfile then
+                json = readfile(pathOverride)
+            elseif not pathOverride then
+                local autoPath
+                if isfile and isfile(CONFIG_AUTOLOAD_FILE) and readfile then
+                    autoPath = readfile(CONFIG_AUTOLOAD_FILE)
+                end
+                if autoPath and isfile and isfile(autoPath) and readfile then
+                    json = readfile(autoPath)
+                elseif isfile and isfile("Spooky_GlobalFullConfig.json") and readfile then
+                    json = readfile("Spooky_GlobalFullConfig.json")
+                end
             end
             if json and json ~= "" then
-                if applyCompactConfigString(json) then return end
-                local ok, data = pcall(function() return HttpService:JSONDecode(json) end)
-                if ok and data and _G.SpookyApplyGlobalConfig then _G.SpookyApplyGlobalConfig(data) end
+                applyCompactConfigString(json)
             end
         end)
     end
 
-    createActionButton(masterCard, "Save Global Config", "Guardar Global", UDim2.new(0.48, -4, 0, 26), UDim2.new(0, 8, 0, 28), function()
-        local ok, res = pcall(function()
-            local str = getCompactConfigString()
-            if writefile then writefile("Spooky_GlobalFullConfig.json", str) end
-            notifyToggle("Global Config Saved Successfully!", true)
-        end)
-        if not ok then notifyToggle("Save Error: " .. tostring(res), false) end
-    end)
-
-    createActionButton(masterCard, "Load Global Config", "Cargar Global", UDim2.new(0.48, -4, 0, 26), UDim2.new(0.5, 4, 0, 28), function()
-        if _G.Spooky_LoadFullConfig then
-            _G.Spooky_LoadFullConfig()
-            notifyToggle("Global Config Loaded!", true)
-        end
-    end)
-
-    createActionButton(masterCard, "Export Config (Compact)", "Exportar (Discord)", UDim2.new(0.48, -4, 0, 26), UDim2.new(0, 8, 0, 66), function()
-        local ok, res = pcall(function()
-            local str = getCompactConfigString()
-            if universalCopy(str) then
-                notifyToggle("Compact Config Copied (Ready for Discord)!", true)
-            else
-                notifyToggle("Clipboard copy failed", false)
-            end
-        end)
-        if not ok then notifyToggle("Export Error: " .. tostring(res), false) end
-    end)
-
-    createActionButton(masterCard, "Import Config", "Importar", UDim2.new(0.48, -4, 0, 26), UDim2.new(0.5, 4, 0, 66), function()
-        importModal.Visible = true
-        local curClip = universalPaste()
-        if curClip and #curClip > 4 then importTextBox.Text = curClip end
-    end)
-
-    createActionButton(masterCard, "Reset Config to Defaults", "Restablecer Ajustes por Defecto", UDim2.new(1, -16, 0, 26), UDim2.new(0, 8, 0, 104), function()
-        if resetAllToFactoryDefaults then
-            resetAllToFactoryDefaults()
-        else
-            for k in pairs(FeatureStates) do
-                setFeatureState(k, false)
-            end
-            Settings.walkSpeed = 16
-            Settings.dashDist = 50
-            Settings.flySpeed = 100
-            Settings.superJumpHeight = 500
-            if UIScale then
-                local def = computeScale()
-                UIScale.Scale = def
-                currentBaseScale = def
-            end
-            notifyToggle("All Configs Reset to Factory Defaults!", true)
-        end
-    end)
-
-    local macroCard = makeCard(ConfigsPage, "Macro Profile", "Perfil Macro", 108, 232)
-    _G.Spooky_LoadMacroConfig = function()
+    -- Keep legacy macro/UI loading available for old startup markers.
+    _G.Spooky_LoadMacroConfig = _G.Spooky_LoadMacroConfig or function()
         pcall(function()
-            local json = nil
             if isfile and isfile("Spooky_MacroSteps.json") and readfile then
-                json = readfile("Spooky_MacroSteps.json")
-            end
-            if json and json ~= "" then
-                local ok, data = pcall(function() return HttpService:JSONDecode(json) end)
-                if ok and data then
-                    if data.customSteps then
-                        Settings.macroCustomSteps = data.customSteps
-                    end
-                    if data.triggerKey then
-                        Settings.macroTriggerKey = data.triggerKey
-                    end
-                    if _G.UpdateMacroBannerFunc then pcall(_G.UpdateMacroBannerFunc) end
-                    if _G.RefreshMacroStepsUI then pcall(_G.RefreshMacroStepsUI) end
+                local raw = readfile("Spooky_MacroSteps.json")
+                local ok, data = pcall(function() return HttpService:JSONDecode(raw) end)
+                if ok and type(data) == "table" and _G.SpookyApplyMacroConfig then
+                    _G.SpookyApplyMacroConfig(data)
                 end
             end
         end)
     end
 
-    createActionButton(macroCard, "Save Macro", "Guardar Macro", UDim2.new(0.48, -4, 0, 26), UDim2.new(0, 8, 0, 28), function()
+    _G.Spooky_LoadUIConfig = _G.Spooky_LoadUIConfig or function()
         pcall(function()
-            local data = {
-                name = "MacroProfile",
-                customSteps = Settings.macroCustomSteps,
-                triggerKey = Settings.macroTriggerKey or "C"
-            }
-            local json = HttpService:JSONEncode(data)
-            if writefile then writefile("Spooky_MacroSteps.json", json) end
-            notifyToggle("Macro Profile Saved Successfully!", true)
-        end)
-    end)
-
-    createActionButton(macroCard, "Load Macro", "Cargar Macro", UDim2.new(0.48, -4, 0, 26), UDim2.new(0.5, 4, 0, 28), function()
-        if _G.Spooky_LoadMacroConfig then
-            _G.Spooky_LoadMacroConfig()
-            notifyToggle("Macro Profile Loaded!", true)
-        end
-    end)
-
-    createActionButton(macroCard, "Export Macro (Compact)", "Exportar Macro", UDim2.new(0.48, -4, 0, 26), UDim2.new(0, 8, 0, 66), function()
-        local data = { steps = Settings.macroSteps }
-        local json = HttpService:JSONEncode(data)
-        if universalCopy(json) then notifyToggle("Macro Copied to Clipboard!", true) end
-    end)
-
-    createActionButton(macroCard, "Import Macro", "Importar Macro", UDim2.new(0.48, -4, 0, 26), UDim2.new(0.5, 4, 0, 66), function()
-        importModal.Visible = true
-        local cur = universalPaste()
-        if cur and #cur > 4 then importTextBox.Text = cur end
-    end)
-
-    local uiCard = makeCard(ConfigsPage, "UI Profile", "Perfil UI", 120, 346)
-    _G.Spooky_LoadUIConfig = function()
-        pcall(function()
-
             if isfile and isfile("ProjectSpooky_UIConfig.json") and readfile then
                 local raw = readfile("ProjectSpooky_UIConfig.json")
-                if raw and #raw > 10 then
-                    local ok, data = pcall(function() return HttpService:JSONDecode(raw) end)
-                    if ok and data then
-                        applyCompactUIConfig(data)
-                        return
-                    end
-                end
-            end
-
-            if isfile and isfile("spooky_ui_config.txt") and readfile then
-                local raw = readfile("spooky_ui_config.txt")
-                if raw and #raw > 2 then
-                    local parts = string.split(raw, "|")
-                    local savedTheme = parts[1]
-                    local savedScale = parts[2] and tonumber(parts[2])
-                    if savedTheme and _G.ApplyTheme then _G.ApplyTheme(savedTheme) end
-                    if savedScale and savedScale >= 0.35 and savedScale <= 1.5 and UIScale then
-                        UIScale.Scale = savedScale
-                        currentBaseScale = savedScale
-                        userCustomScale = savedScale
-                    end
+                local ok, data = pcall(function() return HttpService:JSONDecode(raw) end)
+                if ok and type(data) == "table" then
+                    applyCompactUIConfig(data)
                 end
             end
         end)
     end
 
-    createActionButton(uiCard, "SAVE CONFIG UI", "GUARDAR CONFIG UI", UDim2.new(0.48, -4, 0, 26), UDim2.new(0, 8, 0, 26), function()
-        if _G.saveUIConfig then
-            _G.saveUIConfig()
-            notifyToggle("UI Config Saved: " .. tostring(CurrentTheme) .. " (" .. tostring(currentBaseScale or 0.85) .. "x)", true)
-        end
+    local configCard = makeCard(ConfigsPage, "Configs", "Configs", 398, 2)
+    local actionW = UDim2.new(0.24, -4, 0, 26)
+
+    local function makeConfigAction(text, x, callback)
+        return createActionButton(configCard, text, text, actionW, UDim2.new(x, 0, 0, 28), callback)
+    end
+
+    makeConfigAction("Refresh Configs", 0.00, function()
+        if refreshConfigList then refreshConfigList() end
     end)
 
-    createActionButton(uiCard, "LOAD CONFIG UI", "CARGAR CONFIG UI", UDim2.new(0.48, -4, 0, 26), UDim2.new(0.5, 4, 0, 26), function()
-        if _G.Spooky_LoadUIConfig then
-            _G.Spooky_LoadUIConfig()
-            notifyToggle("UI Profile Loaded: " .. tostring(CurrentTheme), true)
+    makeConfigAction("Create Config", 0.25, function()
+        local name = sanitizeConfigName(configNameInput and configNameInput.Text or "")
+        if name == "" then
+            notifyToggle("Enter a config name first.", false)
+            return
         end
-    end)
-
-    createActionButton(uiCard, "Export UI (Compact)", "Exportar UI (Discord)", UDim2.new(0.48, -4, 0, 26), UDim2.new(0, 8, 0, 56), function()
-        local ok, res = pcall(function()
-            local str = getCompactUIConfigString()
-            if universalCopy(str) then
-                notifyToggle("Compact UI Config Copied (Ready for Discord)!", true)
-            else
-                notifyToggle("Clipboard copy failed", false)
-            end
+        if isfile and isfile(configFilePath(name)) then
+            notifyToggle("Config already exists: " .. name, false)
+            return
+        end
+        local ok, err = pcall(function()
+            writeConfigFile(name, getCompactConfigString())
         end)
-        if not ok then notifyToggle("Export Error: " .. tostring(res), false) end
-    end)
-
-    createActionButton(uiCard, "Import UI Config", "Importar UI", UDim2.new(0.48, -4, 0, 26), UDim2.new(0.5, 4, 0, 56), function()
-        importModal.Visible = true
-        local cur = universalPaste()
-        if cur and #cur > 4 then importTextBox.Text = cur end
-    end)
-
-    createActionButton(uiCard, "RESET UI SETTINGS (DEFAULT)", "RESTABLECER UI POR DEFECTO", UDim2.new(1, -16, 0, 26), UDim2.new(0, 8, 0, 86), function()
-        if _G.SpookyResetUISettingsToDefault then
-            _G.SpookyResetUISettingsToDefault()
+        if ok then
+            selectedConfigName = name
+            if configSelectedLabel then configSelectedLabel.Text = "Selected: " .. name end
+            notifyToggle("Created config: " .. name, true)
+            if refreshConfigList then refreshConfigList() end
+        else
+            notifyToggle("Create error: " .. tostring(err), false)
         end
     end)
 
-    ConfigsPage.CanvasSize = UDim2.new(0, 0, 0, 720)
-    if _G.CreateShareConfigsCard then _G.CreateShareConfigsCard(ConfigsPage, 474) end
+    makeConfigAction("Save Config", 0.50, function()
+        local name = sanitizeConfigName(selectedConfigName or (configNameInput and configNameInput.Text) or "")
+        if name == "" then
+            notifyToggle("Select or create a config first.", false)
+            return
+        end
+        local ok, err = pcall(function()
+            writeConfigFile(name, getCompactConfigString())
+        end)
+        if ok then
+            selectedConfigName = name
+            notifyToggle("Saved config: " .. name, true)
+            if refreshConfigList then refreshConfigList() end
+        else
+            notifyToggle("Save error: " .. tostring(err), false)
+        end
+    end)
+
+    makeConfigAction("Share Directory Config", 0.75, function()
+        ensureConfigDirectory()
+        local shared = universalCopy(CONFIG_DIR)
+        notifyToggle(shared and ("Config directory copied: " .. CONFIG_DIR) or ("Config directory: " .. CONFIG_DIR), shared)
+    end)
+
+    configNameInput = Instance.new("TextBox", configCard)
+    configNameInput.Name = "ConfigNameInput"
+    configNameInput.Size = UDim2.new(0.54, -8, 0, 28)
+    configNameInput.Position = UDim2.new(0, 8, 0, 62)
+    configNameInput.BackgroundColor3 = Color3.fromRGB(17, 17, 24)
+    configNameInput.BorderSizePixel = 0
+    configNameInput.ClearTextOnFocus = false
+    configNameInput.PlaceholderText = "Config name..."
+    configNameInput.PlaceholderColor3 = Color3.fromRGB(105, 108, 125)
+    configNameInput.Text = ""
+    configNameInput.TextColor3 = Color3.fromRGB(235, 238, 250)
+    configNameInput.Font = Enum.Font.GothamMedium
+    configNameInput.TextSize = 10
+    configNameInput.TextXAlignment = Enum.TextXAlignment.Left
+    Instance.new("UICorner", configNameInput).CornerRadius = UDim.new(0, 6)
+
+    local autoLoadButton = createActionButton(
+        configCard,
+        "Set AutoLoad Config",
+        "Set AutoLoad Config",
+        UDim2.new(0.44, -8, 0, 28),
+        UDim2.new(0.56, 0, 0, 62),
+        function()
+            local name = sanitizeConfigName(selectedConfigName or configNameInput.Text)
+            if name == "" or not (isfile and isfile(configFilePath(name))) then
+                notifyToggle("Select an existing config first.", false)
+                return
+            end
+            ensureConfigDirectory()
+            local path = configFilePath(name)
+            local ok, err = pcall(function()
+                if not writefile then error("writefile unavailable") end
+                writefile(CONFIG_AUTOLOAD_FILE, path)
+                writefile("Spooky_AutoLoad_FullConfig.txt", "true")
+                _G.Spooky_AutoLoadEnabled = true
+            end)
+            if ok then
+                selectedConfigName = name
+                notifyToggle("AutoLoad set to: " .. name, true)
+                if configSelectedLabel then configSelectedLabel.Text = "Selected: " .. name .. "  ·  AUTOLOAD" end
+                if refreshConfigList then refreshConfigList() end
+            else
+                notifyToggle("AutoLoad error: " .. tostring(err), false)
+            end
+        end
+    )
+    autoLoadButton.TextSize = 9.5
+
+    configSelectedLabel = Instance.new("TextLabel", configCard)
+    configSelectedLabel.Size = UDim2.new(0.65, -8, 0, 18)
+    configSelectedLabel.Position = UDim2.new(0, 8, 0, 92)
+    configSelectedLabel.BackgroundTransparency = 1
+    configSelectedLabel.Text = "Selected: none"
+    configSelectedLabel.TextColor3 = Color3.fromRGB(145, 150, 170)
+    configSelectedLabel.Font = Enum.Font.GothamMedium
+    configSelectedLabel.TextSize = 9
+    configSelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    configCountLabel = Instance.new("TextLabel", configCard)
+    configCountLabel.Size = UDim2.new(0.35, -8, 0, 18)
+    configCountLabel.Position = UDim2.new(0.65, 0, 0, 92)
+    configCountLabel.BackgroundTransparency = 1
+    configCountLabel.Text = "0 configs"
+    configCountLabel.TextColor3 = Color3.fromRGB(110, 115, 135)
+    configCountLabel.Font = Enum.Font.GothamMedium
+    configCountLabel.TextSize = 9
+    configCountLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+    configListFrame = Instance.new("ScrollingFrame", configCard)
+    configListFrame.Name = "ConfigList"
+    configListFrame.Size = UDim2.new(1, -16, 0, 276)
+    configListFrame.Position = UDim2.new(0, 8, 0, 114)
+    configListFrame.BackgroundColor3 = Color3.fromRGB(9, 9, 14)
+    configListFrame.BackgroundTransparency = 0.15
+    configListFrame.BorderSizePixel = 0
+    configListFrame.ScrollBarThickness = 3
+    configListFrame.ScrollBarImageColor3 = Color3.fromRGB(62, 65, 82)
+    configListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    Instance.new("UICorner", configListFrame).CornerRadius = UDim.new(0, 7)
+
+    local listLayout = Instance.new("UIListLayout", configListFrame)
+    listLayout.Padding = UDim.new(0, 4)
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        configListFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 8)
+    end)
+
+    local function isAutoLoadName(name)
+        if not (isfile and isfile(CONFIG_AUTOLOAD_FILE) and readfile) then return false end
+        local ok, path = pcall(readfile, CONFIG_AUTOLOAD_FILE)
+        return ok and tostring(path) == configFilePath(name)
+    end
+
+    local function clearConfigRows()
+        for _, row in ipairs(configRows) do
+            pcall(function() row:Destroy() end)
+        end
+        table.clear(configRows)
+    end
+
+    refreshConfigList = function()
+        ensureConfigDirectory()
+        clearConfigRows()
+        local names = listConfigNames()
+        if configCountLabel then
+            configCountLabel.Text = tostring(#names) .. (#names == 1 and " config" or " configs")
+        end
+
+        if #names == 0 then
+            local empty = Instance.new("TextLabel", configListFrame)
+            empty.Size = UDim2.new(1, -12, 0, 48)
+            empty.BackgroundTransparency = 1
+            empty.Text = "No configs yet. Create one above."
+            empty.TextColor3 = Color3.fromRGB(105, 108, 125)
+            empty.Font = Enum.Font.GothamMedium
+            empty.TextSize = 10
+            empty.LayoutOrder = 1
+            table.insert(configRows, empty)
+            return
+        end
+
+        for index, name in ipairs(names) do
+            local row = Instance.new("Frame", configListFrame)
+            row.Size = UDim2.new(1, -8, 0, 32)
+            row.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+            row.BorderSizePixel = 0
+            row.LayoutOrder = index
+            Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6)
+            table.insert(configRows, row)
+
+            local label = Instance.new("TextButton", row)
+            label.Size = UDim2.new(0.42, -6, 1, 0)
+            label.Position = UDim2.new(0, 6, 0, 0)
+            label.BackgroundTransparency = 1
+            label.Text = (isAutoLoadName(name) and "●  " or "○  ") .. name
+            label.TextColor3 = isAutoLoadName(name) and Color3.fromRGB(115, 240, 175) or Color3.fromRGB(220, 222, 235)
+            label.Font = Enum.Font.GothamMedium
+            label.TextSize = 9
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.AutoButtonColor = false
+            label.MouseButton1Click:Connect(function()
+                selectedConfigName = name
+                configNameInput.Text = name
+                configSelectedLabel.Text = "Selected: " .. name .. (isAutoLoadName(name) and "  ·  AUTOLOAD" or "")
+            end)
+
+            local loadBtn = createActionButton(row, "Load", "Load", UDim2.new(0.14, -3, 0, 24), UDim2.new(0.43, 0, 0, 4), function()
+                selectedConfigName = name
+                configNameInput.Text = name
+                configSelectedLabel.Text = "Selected: " .. name
+                applyNamedConfig(name)
+                if isAutoLoadName(name) then
+                    configSelectedLabel.Text = "Selected: " .. name .. "  ·  AUTOLOAD"
+                end
+            end)
+            loadBtn.TextSize = 8.5
+
+            local saveBtn = createActionButton(row, "Save", "Save", UDim2.new(0.14, -3, 0, 24), UDim2.new(0.58, 0, 0, 4), function()
+                selectedConfigName = name
+                configNameInput.Text = name
+                local ok, err = pcall(function() writeConfigFile(name, getCompactConfigString()) end)
+                notifyToggle(ok and ("Saved: " .. name) or ("Save error: " .. tostring(err)), ok)
+                if ok and refreshConfigList then refreshConfigList() end
+            end)
+            saveBtn.TextSize = 8.5
+
+            local autoBtn = createActionButton(row, "Auto", "Auto", UDim2.new(0.14, -3, 0, 24), UDim2.new(0.73, 0, 0, 4), function()
+                selectedConfigName = name
+                configNameInput.Text = name
+                local ok, err = pcall(function()
+                    if not writefile then error("writefile unavailable") end
+                    writefile(CONFIG_AUTOLOAD_FILE, configFilePath(name))
+                    writefile("Spooky_AutoLoad_FullConfig.txt", "true")
+                    _G.Spooky_AutoLoadEnabled = true
+                end)
+                notifyToggle(ok and ("AutoLoad: " .. name) or ("AutoLoad error: " .. tostring(err)), ok)
+                if ok and refreshConfigList then refreshConfigList() end
+            end)
+            autoBtn.TextSize = 8.5
+
+            local delBtn = createActionButton(row, "Delete", "Delete", UDim2.new(0.11, -3, 0, 24), UDim2.new(0.88, 0, 0, 4), function()
+                local wasAuto = isAutoLoadName(name)
+                local ok, err = pcall(function()
+                    deleteConfigFile(name)
+                    if wasAuto then
+                        if delfile and isfile and isfile(CONFIG_AUTOLOAD_FILE) then delfile(CONFIG_AUTOLOAD_FILE) end
+                        if delfile and isfile and isfile("Spooky_AutoLoad_FullConfig.txt") then delfile("Spooky_AutoLoad_FullConfig.txt") end
+                        _G.Spooky_AutoLoadEnabled = false
+                    end
+                end)
+                if selectedConfigName == name then
+                    selectedConfigName = nil
+                    configNameInput.Text = ""
+                    configSelectedLabel.Text = "Selected: none"
+                end
+                notifyToggle(ok and ("Deleted: " .. name) or ("Delete error: " .. tostring(err)), ok)
+                if ok and refreshConfigList then refreshConfigList() end
+            end)
+            delBtn.TextSize = 8.0
+        end
+    end
+
+    listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        configListFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 8)
+    end)
+
+    ensureConfigDirectory()
+    refreshConfigList()
+
+    ConfigsPage.CanvasSize = UDim2.new(0, 0, 0, 414)
+
 
     showHomeSubView = function() end
 end
 do
-    local CombatPage = createScrollPage("Combat_Page", 1200)
+    local CombatPage = createScrollPage("Combat_Page", 1320)
     local c1 = makeCard(CombatPage, "Targeting & Aim", "Objetivos y Aim", 176, 2)
     createToggleButton(c1, "AimbotPlayer2", "Aimbot Player", "Aimbot Jugador", BW, UDim2.new(0, X1, 0, 26))
     createToggleButton(c1, "AimbotNpc2",    "Aimbot NPC",    "Aimbot NPC",     BW, UDim2.new(0, X2, 0, 26))
@@ -9990,36 +10201,93 @@ end
     hbNote.TextSize = 10
     hbNote.TextXAlignment = Enum.TextXAlignment.Left
 
-    local c4 = makeCard(CombatPage, "Skill Blacklist", "Lista Negra de Habilidades", 290, 718)
-    createToggleButton(c4, "BlacklistAimbot", "Enable Blacklist Filter", "Activar Filtro Lista Negra", UDim2.new(1, -16, 0, 24), UDim2.new(0, 8, 0, 24))
-    setFeatureState("BlacklistAimbot", true)
-    createToggleButton(c4, "BL_Melee", "All Melee", "Todo Melee", BS, UDim2.new(0, X1, 0, 74), true)
-    createToggleButton(c4, "BL_Fruit", "All Fruit", "Toda Fruta", BS, UDim2.new(0, X2, 0, 74), true)
-    createToggleButton(c4, "BL_Sword", "All Sword", "Toda Espada", BS, UDim2.new(0, X3, 0, 74), true)
-    createToggleButton(c4, "BL_MeleeZ", "Melee Z", "Melee Z", BS, UDim2.new(0, X1, 0, 104), true)
-    createToggleButton(c4, "BL_FruitM1", "Fruit M1", "Fruta M1", BS, UDim2.new(0, X2, 0, 104), true)
-    createToggleButton(c4, "BL_SwordZ", "Sword Z", "Espada Z", BS, UDim2.new(0, X3, 0, 104), true)
-    createToggleButton(c4, "BL_MeleeX", "Melee X", "Melee X", BS, UDim2.new(0, X1, 0, 134), true)
-    createToggleButton(c4, "BL_FruitZ", "Fruit Z", "Fruta Z", BS, UDim2.new(0, X2, 0, 134), true)
-    createToggleButton(c4, "BL_SwordX", "Sword X", "Espada X", BS, UDim2.new(0, X3, 0, 134), true)
-    createToggleButton(c4, "BL_MeleeC", "Melee C", "Melee C", BS, UDim2.new(0, X1, 0, 164), true)
-    createToggleButton(c4, "BL_FruitX", "Fruit X", "Fruta X", BS, UDim2.new(0, X2, 0, 164), true)
-    createToggleButton(c4, "BL_Gun",    "All Gun", "Toda Pistola", BS, UDim2.new(0, X3, 0, 164), true)
-    createToggleButton(c4, "BL_FruitC", "Fruit C", "Fruta C", BS, UDim2.new(0, X2, 0, 194), true)
-    createToggleButton(c4, "BL_GunZ",   "Gun Z",   "Pistola Z",   BS, UDim2.new(0, X3, 0, 194), true)
-    createToggleButton(c4, "BL_FruitV", "Fruit V", "Fruta V", BS, UDim2.new(0, X2, 0, 224), true)
-    createToggleButton(c4, "BL_GunX",   "Gun X",   "Pistola X",   BS, UDim2.new(0, X3, 0, 224), true)
-    createToggleButton(c4, "BL_GunTAP", "Gun M1", "Pistola M1", BS, UDim2.new(0, X1, 0, 254), true)
-    createToggleButton(c4, "BL_FruitF", "Fruit F", "Fruta F", BS, UDim2.new(0, X2, 0, 254), true)
-    createActionButton(c4, "Reset Blacklist", "Limpiar Lista", BS, UDim2.new(0, X3, 0, 254), function()
-        local blKeys = { "BL_Melee", "BL_Fruit", "BL_Sword", "BL_Gun", "BL_MeleeZ", "BL_MeleeX", "BL_MeleeC", "BL_FruitM1", "BL_FruitZ", "BL_FruitX", "BL_FruitC", "BL_FruitV", "BL_FruitF", "BL_SwordZ", "BL_SwordX", "BL_GunZ", "BL_GunX", "BL_GunTAP" }
+    local c4 = makeCard(CombatPage, "Skill Whitelist", "Lista Blanca de Habilidades", 450, 718)
+    -- Four compact columns inside Skill Whitelist: Melee | Fruit | Sword | Gun.
+    local WBS = UDim2.new(0, 92, 0, 26)
+    local WX1, WX2, WX3, WX4 = 6, 102, 198, 294
+    createToggleButton(c4, "WhitelistAimbot", "Enable Whitelist Filter", "Activar Filtro Lista Blanca", UDim2.new(1, -16, 0, 24), UDim2.new(0, 8, 0, 24))
+    setFeatureState("WhitelistAimbot", true)
+
+    -- Equip controls: these toggles decide which weapon families Auto Bounty
+    -- is allowed to take into the player's hand. They are not a priority/order UI.
+    local weaponKeys = { "Melee", "Fruit", "Sword", "Gun" }
+    local weaponColumns = { WX1, WX2, WX3, WX4 }
+    local equipButtons = {}
+    local savedWeapons = Spooky.AutoBountyPersistence and Spooky.AutoBountyPersistence.Normalize
+        and Spooky.AutoBountyPersistence.Normalize(getgenv().SpookyAutoBountyWeapons)
+        or { Melee = true, Fruit = true, Sword = true, Gun = true }
+    getgenv().SpookyAutoBountyWeapons = savedWeapons
+
+    for i, key in ipairs(weaponKeys) do
+        local featureName = "Equip_" .. key
+        local enabled = savedWeapons[key] ~= false
+        local btn = createToggleButton(
+            c4,
+            featureName,
+            key,
+            key,
+            WBS,
+            UDim2.new(0, weaponColumns[i], 0, 54),
+            true
+        )
+        equipButtons[key] = btn
+        FeatureStates[featureName] = enabled
+        updateToggleVisual(featureName, enabled)
+        FeatureCallbacks[featureName] = function(active)
+            active = active == true
+            getgenv().SpookyAutoBountyWeapons = Spooky.AutoBountyPersistence.Normalize(getgenv().SpookyAutoBountyWeapons)
+            getgenv().SpookyAutoBountyWeapons[key] = active
+            _G.SpookyAutoBountySettings = _G.SpookyAutoBountySettings or {}
+            _G.SpookyAutoBountySettings[key] = _G.SpookyAutoBountySettings[key] or {}
+            _G.SpookyAutoBountySettings[key].Enable = active
+            if Spooky.AutoBountyPersistence and Spooky.AutoBountyPersistence.Save then
+                Spooky.AutoBountyPersistence.Save(getgenv().SpookyAutoBountyEnabled == true)
+            end
+        end
+    end
+
+    local equipNote = Instance.new("TextLabel", c4)
+    equipNote.Size = UDim2.new(1, -16, 0, 16)
+    equipNote.Position = UDim2.fromOffset(8, 84)
+    equipNote.BackgroundTransparency = 1
+    equipNote.Font = Enum.Font.GothamMedium
+    equipNote.Text = "Equip: choose which weapon types Auto Bounty may use."
+    equipNote.TextColor3 = Color3.fromRGB(135, 145, 164)
+    equipNote.TextSize = 9
+    equipNote.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- Four fixed columns: Melee | Fruit | Sword | Gun.
+    createToggleButton(c4, "WL_Melee",   "All Melee", "Todo Melee", WBS, UDim2.new(0, weaponColumns[1], 0, 112), true)
+    createToggleButton(c4, "WL_MeleeZ",  "Melee Z",  "Melee Z", WBS, UDim2.new(0, weaponColumns[1], 0, 142), true)
+    createToggleButton(c4, "WL_MeleeX",  "Melee X",  "Melee X", WBS, UDim2.new(0, weaponColumns[1], 0, 172), true)
+    createToggleButton(c4, "WL_MeleeC",  "Melee C",  "Melee C", WBS, UDim2.new(0, weaponColumns[1], 0, 202), true)
+
+    createToggleButton(c4, "WL_Fruit",   "All Fruit", "Toda Fruta", WBS, UDim2.new(0, weaponColumns[2], 0, 112), true)
+    createToggleButton(c4, "WL_FruitM1", "Fruit M1", "Fruta M1", WBS, UDim2.new(0, weaponColumns[2], 0, 142), true)
+    createToggleButton(c4, "WL_FruitZ",  "Fruit Z",  "Fruta Z", WBS, UDim2.new(0, weaponColumns[2], 0, 172), true)
+    createToggleButton(c4, "WL_FruitX",  "Fruit X",  "Fruta X", WBS, UDim2.new(0, weaponColumns[2], 0, 202), true)
+    createToggleButton(c4, "WL_FruitC",  "Fruit C",  "Fruta C", WBS, UDim2.new(0, weaponColumns[2], 0, 232), true)
+    createToggleButton(c4, "WL_FruitV",  "Fruit V",  "Fruta V", WBS, UDim2.new(0, weaponColumns[2], 0, 262), true)
+    createToggleButton(c4, "WL_FruitF",  "Fruit F",  "Fruta F", WBS, UDim2.new(0, weaponColumns[2], 0, 292), true)
+
+    createToggleButton(c4, "WL_Sword",   "All Sword", "Toda Espada", WBS, UDim2.new(0, weaponColumns[3], 0, 112), true)
+    createToggleButton(c4, "WL_SwordZ",  "Sword Z",  "Espada Z",   WBS, UDim2.new(0, weaponColumns[3], 0, 142), true)
+    createToggleButton(c4, "WL_SwordX",  "Sword X",  "Espada X",   WBS, UDim2.new(0, weaponColumns[3], 0, 172), true)
+
+    createToggleButton(c4, "WL_Gun",     "All Gun",   "Toda Pistola", WBS, UDim2.new(0, weaponColumns[4], 0, 112), true)
+    createToggleButton(c4, "WL_GunZ",    "Gun Z",     "Pistola Z",    WBS, UDim2.new(0, weaponColumns[4], 0, 142), true)
+    createToggleButton(c4, "WL_GunX",    "Gun X",     "Pistola X",    WBS, UDim2.new(0, weaponColumns[4], 0, 172), true)
+    createToggleButton(c4, "WL_GunTAP",  "Gun M1",    "Pistola M1",   WBS, UDim2.new(0, weaponColumns[4], 0, 202), true)
+
+    createActionButton(c4, "Reset Whitelist", "Limpiar Lista Blanca", WBS, UDim2.new(0, WX1, 0, 332), function()
+        local blKeys = { "WL_Melee", "WL_Fruit", "WL_Sword", "WL_Gun", "WL_MeleeZ", "WL_MeleeX", "WL_MeleeC", "WL_FruitM1", "WL_FruitZ", "WL_FruitX", "WL_FruitC", "WL_FruitV", "WL_FruitF", "WL_SwordZ", "WL_SwordX", "WL_GunZ", "WL_GunX", "WL_GunTAP" }
         for _, k in ipairs(blKeys) do
             setFeatureState(k, false)
         end
-        notifyToggle("Blacklist Filters Reset", false)
+        notifyToggle("Whitelist Reset", false)
     end)
 
-    local c3 = makeCard(CombatPage, "Movement & Utility", "Movimiento y Utilidades", 172, 1014)
+    local c3 = makeCard(CombatPage, "Movement & Utility", "Movimiento y Utilidades", 172, 1120)
     createToggleButton(c3, "WalkSpeed",     "WalkSpeed",     "Velocidad",        BW, UDim2.new(0, X1, 0, 26))
     createToggleButton(c3, "DashDistance",  "Dash Distance", "Distancia Dash",   BW, UDim2.new(0, X2, 0, 26))
     createToggleButton(c3, "Fly",           "Fly",           "Volar",            BW, UDim2.new(0, X3, 0, 26))
@@ -12114,7 +12382,6 @@ do
         { id = "FruitESP",          name = "Fruit ESP",                mode = "Toggle", defaultKey = "None" },
         { id = "IslandESP",         name = "Island ESP",               mode = "Toggle", defaultKey = "None" },
         { id = "FlowerESP",         name = "Flower ESP",               mode = "Toggle", defaultKey = "None" },
-        { id = "GeneralESP",        name = "General Master ESP",       mode = "Toggle", defaultKey = "None" },
         { id = "Tracers2",          name = "Combat Tracers",           mode = "Toggle", defaultKey = "None" },
         { id = "WhiteScreen",       name = "White Screen (Boost FPS)", mode = "Toggle", defaultKey = "None" },
         { id = "NoAnimation",       name = "Disable Animations",       mode = "Toggle", defaultKey = "None" },
@@ -13120,6 +13387,7 @@ do
         sg.Enabled = true
 
         local mainW = Instance.new("Frame", sg)
+        _G.SpookyESPCustomizerWindow = mainW
         mainW.Size = UDim2.new(0, 490, 0, 360)
         mainW.Position = UDim2.new(0.5, -245, 0.5, -180)
         mainW.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
@@ -13129,6 +13397,44 @@ do
         mwStk.Color = _G.CurrentAccentColor or Color3.fromRGB(140, 115, 235)
         mwStk.Thickness = 1.4
         _G.SpookyESPCustomizerBorder = mwStk
+
+        -- Resizable ESP customizer window.
+        local resizeGrip = Instance.new("TextButton", mainW)
+        resizeGrip.Name = "ResizeGrip"
+        resizeGrip.Size = UDim2.fromOffset(18, 18)
+        resizeGrip.AnchorPoint = Vector2.new(1, 1)
+        resizeGrip.Position = UDim2.new(1, -4, 1, -4)
+        resizeGrip.BackgroundTransparency = 1
+        resizeGrip.Text = "◢"
+        resizeGrip.TextSize = 11
+        resizeGrip.Font = Enum.Font.GothamBold
+        resizeGrip.TextColor3 = Color3.fromRGB(105, 116, 140)
+        resizeGrip.AutoButtonColor = false
+        resizeGrip.ZIndex = 5010
+        do
+            local resizing, startMouse, startSize = false, Vector2.zero, mainW.AbsoluteSize
+            resizeGrip.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    resizing = true
+                    startMouse = input.Position
+                    startSize = mainW.AbsoluteSize
+                end
+            end)
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    resizing = false
+                end
+            end)
+            UserInputService.InputChanged:Connect(function(input)
+                if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    local delta = input.Position - startMouse
+                    mainW.Size = UDim2.fromOffset(
+                        math.clamp(startSize.X + delta.X, 460, 760),
+                        math.clamp(startSize.Y + delta.Y, 330, 620)
+                    )
+                end
+            end)
+        end
 
         local topBar = Instance.new("Frame", mainW)
         topBar.Size = UDim2.new(1, 0, 0, 32)
@@ -13195,6 +13501,7 @@ do
         closeBtn.MouseButton1Click:Connect(function() sg.Enabled = false end)
 
         local leftPanel = Instance.new("ScrollingFrame", mainW)
+        _G.SpookyESPCustomizerControls = leftPanel
         leftPanel.Size = UDim2.new(0, 230, 1, -40)
         leftPanel.Position = UDim2.new(0, 8, 0, 36)
         leftPanel.BackgroundColor3 = Color3.fromRGB(16, 15, 22)
@@ -13215,6 +13522,7 @@ do
         lpPad.PaddingBottom = UDim.new(0, 6)
 
         local rightPanel = Instance.new("Frame", mainW)
+        _G.SpookyESPCustomizerPreviewPanel = rightPanel
         rightPanel.Size = UDim2.new(1, -252, 1, -40)
         rightPanel.Position = UDim2.new(0, 244, 0, 36)
         rightPanel.BackgroundColor3 = Color3.fromRGB(10, 10, 16)
@@ -13333,6 +13641,7 @@ do
         previewTag.ZIndex = 5010
 
         local offsetInfoBar = Instance.new("Frame", rightPanel)
+        _G.SpookyESPCustomizerOffsetBar = offsetInfoBar
         offsetInfoBar.Size = UDim2.new(1, -12, 0, 22)
         offsetInfoBar.Position = UDim2.new(0, 6, 1, -58)
         offsetInfoBar.BackgroundColor3 = Color3.fromRGB(18, 17, 26)
@@ -13369,6 +13678,7 @@ do
             tagContainer.Position = UDim2.new(0.5, 0, 0.5, -60)
             offsetInfoLbl.Text = "Tag Offset: X: +0.0 | Y: +0.0"
             if _G.RebuildSpookyESPs then pcall(_G.RebuildSpookyESPs) end
+            if _G.SpookyPremiumESPMonitorRefresh then pcall(_G.SpookyPremiumESPMonitorRefresh) end
         end)
 
         pcall(function()
@@ -13545,6 +13855,9 @@ do
             local oy = _G.G_ESP_TagOffsetY or 0
             tagContainer.Position = UDim2.new(0.5, math.floor(ox * 10), 0.5, -60 - math.floor(oy * 10))
             offsetInfoLbl.Text = string.format("Tag Offset: X: %+.1f | Y: %+.1f", ox, oy)
+            if _G.SpookyPremiumESPMonitorRefresh then
+                pcall(_G.SpookyPremiumESPMonitorRefresh)
+            end
         end
 
         local function createCustomizerToggle(name, labelText, getVal, setVal)
@@ -13837,6 +14150,7 @@ do
         end)
 
         local applyBtn = Instance.new("TextButton", rightPanel)
+        _G.SpookyESPCustomizerApply = applyBtn
         applyBtn.Size = UDim2.new(0.48, -4, 0, 26)
         applyBtn.Position = UDim2.new(0, 6, 1, -30)
         applyBtn.BackgroundColor3 = Color3.fromRGB(38, 34, 56)
@@ -13881,6 +14195,7 @@ do
         end)
 
         local resetBtn = Instance.new("TextButton", rightPanel)
+        _G.SpookyESPCustomizerReset = resetBtn
         resetBtn.Size = UDim2.new(0.48, -4, 0, 26)
         resetBtn.Position = UDim2.new(0.52, 2, 1, -30)
         resetBtn.BackgroundColor3 = Color3.fromRGB(28, 26, 38)
@@ -13941,18 +14256,19 @@ end
 do
     local VisualPage = createScrollPage("Visual_Page", 870)
     local v1 = makeCard(VisualPage, "ESP Visuals", "Visuales ESP", 134, 2)
-    createToggleButton(v1, "GeneralEsp",  "General Esp",  "ESP General (Todos)", BW, UDim2.new(0, X1, 0, 26))
     createToggleButton(v1, "PlayerEsp",   "Player Esp",   "ESP Jugadores",       BW, UDim2.new(0, X2, 0, 26))
     createToggleButton(v1, "NpcEsp",      "Npc Esp",      "ESP NPCs",            BW, UDim2.new(0, X3, 0, 26))
     createToggleButton(v1, "FruitEsp",    "Fruit Esp",    "ESP Frutas",          BW, UDim2.new(0, X1, 0, 62))
     createToggleButton(v1, "RainbowEsp",  "Rainbow Chams","Chams Arcoiris",      BW, UDim2.new(0, X2, 0, 62))
     createToggleButton(v1, "EspMatcha",   "Matcha ESP",   "ESP Matcha",          BW, UDim2.new(0, X3, 0, 62))
     createToggleButton(v1, "SimpleEsp",   "Simple ESP",   "ESP Simple",          BW, UDim2.new(0, X1, 0, 98))
-    createActionButton(v1, "CUSTOMIZE ESP (PREVIEW)", "PERSONALIZAR ESP", UDim2.new(0.64, 0, 0, 26), UDim2.new(0, X2, 0, 98), function()
-        if _G.openESPCustomizerWindow then
-            _G.openESPCustomizerWindow()
-        elseif openESPCustomizerWindow then
-            openESPCustomizerWindow()
+    createActionButton(v1, "ESP MONITOR", "ESP MONITOR", UDim2.new(0.64, 0, 0, 26), UDim2.new(0, X2, 0, 98), function()
+        local monitor = _G.SpookyESPMonitorWindow
+        if monitor then
+            monitor.Visible = not monitor.Visible
+            if monitor.Visible then
+                monitor.ZIndex = 100
+            end
         end
     end)
 
@@ -16519,15 +16835,19 @@ do
         enabled = false,
         distance = 300
     }
-    Spooky.AutoBountyPersistence.DefaultAbilityPriority = "Melee > Sword > Gun"
+    Spooky.AutoBountyPersistence.DefaultTargetDistance = 12
+    Spooky.AutoBountyPersistence.DefaultAbilityPriority = "Melee > Fruit > Sword > Gun"
     Spooky.AutoBountyPersistence.DefaultAutoStart = false
     Spooky.AutoBountyPersistence.AbilityPriorityOptions = {
-        "Melee > Sword > Gun",
-        "Melee > Gun > Sword",
-        "Sword > Melee > Gun",
-        "Sword > Gun > Melee",
-        "Gun > Melee > Sword",
-        "Gun > Sword > Melee"
+        "Melee > Fruit > Sword > Gun",
+        "Melee > Fruit > Gun > Sword",
+        "Melee > Sword > Fruit > Gun",
+        "Fruit > Melee > Sword > Gun",
+        "Fruit > Sword > Melee > Gun",
+        "Sword > Melee > Fruit > Gun",
+        "Sword > Fruit > Melee > Gun",
+        "Gun > Melee > Fruit > Sword",
+        "Gun > Fruit > Melee > Sword"
     }
 
     Spooky.AutoBountyPersistence.Normalize = function(prefs)
@@ -16562,6 +16882,7 @@ do
         local farSkip = type(data.farSkip) == "table" and data.farSkip or {}
         getgenv().SpookyAutoBountySkipFarEnabled = (farSkip.enabled == true)
         getgenv().SpookyAutoBountySkipFarDistance = tonumber(farSkip.distance) or Spooky.AutoBountyPersistence.DefaultFarSkip.distance
+        getgenv().SpookyAutoBountyTargetDistance = math.clamp(tonumber(data.targetDistance) or Spooky.AutoBountyPersistence.DefaultTargetDistance, 0, 150)
         getgenv().SpookyAutoBountyAbilityPriority = Spooky.AutoBountyPersistence.NormalizeAbilityPriority(data.abilityPriority)
         getgenv().SpookyAutoBountyAutoStart = data.autoStart == true
         if getgenv().SpookyAutoBountySkipFarDistance < 50 then getgenv().SpookyAutoBountySkipFarDistance = 50 end
@@ -16582,6 +16903,7 @@ do
                         enabled = getgenv().SpookyAutoBountySkipFarEnabled == true,
                         distance = tonumber(getgenv().SpookyAutoBountySkipFarDistance) or Spooky.AutoBountyPersistence.DefaultFarSkip.distance
                     },
+                    targetDistance = math.clamp(tonumber(getgenv().SpookyAutoBountyTargetDistance) or Spooky.AutoBountyPersistence.DefaultTargetDistance, 0, 150),
                     abilityPriority = Spooky.AutoBountyPersistence.NormalizeAbilityPriority(getgenv().SpookyAutoBountyAbilityPriority),
                     autoStart = getgenv().SpookyAutoBountyAutoStart == true
                 }))
@@ -16882,7 +17204,7 @@ local function createESP(player)
     billboard.Name = "Spooky_PlayerESP"
     billboard.Adornee = head
     billboard.Size = UDim2.new(0, 220, 0, 80)
-    billboard.StudsOffset = Vector3.new(0, 3.2, 0)
+    billboard.StudsOffset = Vector3.new(0, 0.9, 0)
     billboard.AlwaysOnTop = true
     local text = Instance.new("TextLabel")
     text.Size = UDim2.new(1, 0, 1, 0)
@@ -17829,10 +18151,13 @@ if not Setting.Another then
 end
 
 getgenv().SpookyAutoBountyWeapons = Spooky.AutoBountyPersistence.Normalize(getgenv().SpookyAutoBountyWeapons)
-Setting.Melee.Enable = getgenv().SpookyAutoBountyWeapons.Melee
-Setting.Fruit.Enable = getgenv().SpookyAutoBountyWeapons.Fruit
-Setting.Sword.Enable = getgenv().SpookyAutoBountyWeapons.Sword
-Setting.Gun.Enable = getgenv().SpookyAutoBountyWeapons.Gun
+-- The visible Skill Whitelist is now the single source of truth for weapon
+-- availability. Keep legacy category enables on so old saved prefs cannot
+-- silently disable Melee/Sword/Gun while Fruit still works.
+Setting.Melee.Enable = true
+Setting.Fruit.Enable = true
+Setting.Sword.Enable = true
+Setting.Gun.Enable = true
 _G.SpookyAutoBountySettings = Setting
 
 while isBountyCurrent() do
@@ -18190,14 +18515,27 @@ do
         if not isBountyCurrent() or (_G.SpookySkillBlocked and _G.SpookySkillBlocked(use)) then return end
         pcall(function()
 
-            if string.upper(tostring(use)) == "V" then return end
             local char = lp.Character
             if char and char:FindFirstChild("HumanoidRootPart") then
                 if VirtualInputManager then
-                    VirtualInputManager:SendKeyEvent(true, use, false, nil)
-                    task.wait(waitTime or 0.1)
-                    if not isBountyCurrent() then return end
-                    VirtualInputManager:SendKeyEvent(false, use, false, nil)
+                    local keyMap = {
+                        Z = Enum.KeyCode.Z, X = Enum.KeyCode.X, C = Enum.KeyCode.C,
+                        V = Enum.KeyCode.V, F = Enum.KeyCode.F,
+                        M1 = Enum.UserInputType.MouseButton1,
+                        TAP = Enum.UserInputType.MouseButton1
+                    }
+                    local inputKey = keyMap[string.upper(tostring(use))] or use
+                    if typeof(inputKey) == "EnumItem" and inputKey.EnumType == Enum.KeyCode then
+                        VirtualInputManager:SendKeyEvent(true, inputKey, false, game)
+                        task.wait(waitTime or 0.1)
+                        if not isBountyCurrent() then return end
+                        VirtualInputManager:SendKeyEvent(false, inputKey, false, game)
+                    elseif inputKey == Enum.UserInputType.MouseButton1 then
+                        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                        task.wait(waitTime or 0.1)
+                        if not isBountyCurrent() then return end
+                        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+                    end
                 end
             end
         end)
@@ -18227,51 +18565,73 @@ do
     end
 
     Spooky.AutoBountyWeaponPriority = Spooky.AutoBountyWeaponPriority or {}
-    Spooky.AutoBountyWeaponPriority.Options = Spooky.AutoBountyPersistence.AbilityPriorityOptions
+    Spooky.AutoBountyWeaponPriority.Options = { "Melee", "Fruit", "Sword", "Gun" }
     Spooky.AutoBountyWeaponPriority.GetOrder = function()
-        local raw = Spooky.AutoBountyPersistence.NormalizeAbilityPriority(getgenv().SpookyAutoBountyAbilityPriority)
-        local order = {}
-        for category in string.gmatch(raw, "[^%s>]+") do
-            table.insert(order, category)
-        end
-        return order
+        -- No user-configured priority anymore. The four top toggles only control
+        -- whether a weapon family may be equipped; this is the fixed scan order.
+        return { "Melee", "Fruit", "Sword", "Gun" }
     end
     Spooky.AutoBountyWeaponPriority.Index = function()
-        local current = Spooky.AutoBountyPersistence.NormalizeAbilityPriority(getgenv().SpookyAutoBountyAbilityPriority)
-        for index, option in ipairs(Spooky.AutoBountyWeaponPriority.Options) do
-            if option == current then return index end
-        end
         return 1
     end
     Spooky.AutoBountyWeaponPriority.IsBlocked = function(category, key)
-        if FeatureStates["BlacklistAimbot"] == false then return false end
-        local prefix = "BL_" .. tostring(category)
-        if FeatureStates[prefix] == true then return true end
+        -- The four category toggles (Equip_Melee/Fruit/Sword/Gun) are the
+        -- ONLY category-level permission: ON = Auto Bounty may equip it.
+        -- Do not use the per-skill WL_* toggles to decide whether a weapon
+        -- can be taken into the hand; those only filter individual abilities.
+        if FeatureStates["Equip_" .. tostring(category)] == false then
+            return true
+        end
+
+        if key == nil then
+            return false
+        end
+
+        -- Per-skill whitelist is checked only when the whitelist filter is on.
+        if FeatureStates["WhitelistAimbot"] == false then
+            return false
+        end
+
+        local prefix = "WL_" .. tostring(category)
+        if FeatureStates[prefix] == true then
+            return false
+        end
+
         local mapped = key
         if category == "Gun" and key == "M1" then mapped = "TAP" end
-        return FeatureStates[prefix .. tostring(mapped)] == true
+        if category == "Fruit" and key == "TAP" then mapped = "M1" end
+        return FeatureStates[prefix .. tostring(mapped)] ~= true
     end
+
     Spooky.AutoBountyWeaponPriority.FindReadySkill = function(category, tool, skillsGui)
         local cfg = Setting[category]
-        if not cfg or cfg.Enable ~= true or not tool then return nil end
+        if not cfg or not tool then return nil end
+        -- Check only family permission here; individual whitelist is checked per key.
+        if Spooky.AutoBountyWeaponPriority.IsBlocked(category, nil) then return nil end
         local frame = skillsGui and skillsGui:FindFirstChild(tool.Name)
         if not frame then return nil end
+
         local keys = category == "Melee" and {"Z","X","C"}
+            or category == "Fruit" and {"M1","Z","X","C","V","F"}
             or category == "Sword" and {"Z","X"}
-            or category == "Gun" and {"Z","X"}
+            or category == "Gun" and {"Z","X","TAP"}
             or {}
+
         for _, key in ipairs(keys) do
             local keyCfg = cfg[key]
             local skill = frame:FindFirstChild(key)
             local cooldown = skill and skill:FindFirstChild("Cooldown")
-            if keyCfg and keyCfg.Enable == true and not Spooky.AutoBountyWeaponPriority.IsBlocked(category, key)
-                and cooldown and cooldown.AbsoluteSize.X <= 0 then
+            local ready = (cooldown == nil) or cooldown.AbsoluteSize.X <= 0
+            if keyCfg and keyCfg.Enable == true
+                and not Spooky.AutoBountyWeaponPriority.IsBlocked(category, key)
+                and ready then
                 return key, keyCfg.HoldTime or 0.1
             end
         end
         return nil
     end
     Spooky.AutoBountyWeaponPriority.FindTool = function(category, char, bp)
+        if Spooky.AutoBountyWeaponPriority.IsBlocked(category, nil) then return nil end
         if char then
             local equipped = char:FindFirstChildOfClass("Tool")
             if equipped and getToolCategory(equipped) == category then return equipped end
@@ -18288,39 +18648,35 @@ do
     Spooky.AutoBountyWeaponPriority.activeCategory = nil
     Spooky.AutoBountyWeaponPriority.returnAt = 0
     Spooky.AutoBountyWeaponPriority.TryTemporaryAbility = function(skillsGui)
-        local oneShot = (FeatureStates["OneShotKitsune"] == true or _G.FruitsM1Enable == true)
-        if not oneShot then
-            Spooky.AutoBountyWeaponPriority.activeCategory = nil
-            Spooky.AutoBountyWeaponPriority.returnAt = 0
-            return false
-        end
-
-        local now = os.clock()
         local char = lp.Character
         local bp = lp:FindFirstChildOfClass("Backpack") or lp:FindFirstChild("Backpack")
         if not char or not bp then return false end
 
-        if Spooky.AutoBountyWeaponPriority.activeCategory then
-            if now < Spooky.AutoBountyWeaponPriority.returnAt then
-                return true
-            end
-            pcall(function() equip("Blox Fruit") end)
-            Spooky.AutoBountyWeaponPriority.activeCategory = nil
-            Spooky.AutoBountyWeaponPriority.returnAt = 0
-            return false
-        end
-
         for _, category in ipairs(Spooky.AutoBountyWeaponPriority.GetOrder()) do
             local tool = Spooky.AutoBountyWeaponPriority.FindTool(category, char, bp)
-            local key, hold = Spooky.AutoBountyWeaponPriority.FindReadySkill(category, tool, skillsGui)
-            if tool and key then
-                local tooltip = category
-                if equip(tooltip) then
-                    task.wait(0.02)
-                    down(key, hold)
-                    Spooky.AutoBountyWeaponPriority.activeCategory = category
-                    Spooky.AutoBountyWeaponPriority.returnAt = os.clock() + 0.18
-                    return true
+            if tool then
+                local key, hold = Spooky.AutoBountyWeaponPriority.FindReadySkill(category, tool, skillsGui)
+                if key then
+                    local equipped = false
+                    -- Switch the actual hotbar/tool slot first; Humanoid:EquipTool is
+                    -- kept as the fallback for executors where hotbar input is unavailable.
+                    if WeaponHelper and WeaponHelper.equipWeaponType then
+                        equipped = WeaponHelper.equipWeaponType(category) == true
+                    end
+                    if not equipped then
+                        local tooltip = (category == "Fruit") and "Blox Fruit" or category
+                        equipped = equip(tooltip) == true
+                    end
+                    if equipped then
+                        local tooltip = (category == "Fruit") and "Blox Fruit" or category
+                        getgenv().weapon = tooltip
+                        task.wait(0.06)
+                        local current = lp.Character and lp.Character:FindFirstChildOfClass("Tool")
+                        if current and getToolCategory(current) == category then
+                            down(key, hold)
+                            return true
+                        end
+                    end
                 end
             end
         end
@@ -18982,22 +19338,18 @@ do
                     local tHrp = curTarg.Character:FindFirstChild("HumanoidRootPart")
                     local mHrp = myChar:FindFirstChild("HumanoidRootPart")
                     if tHrp and mHrp and (tHrp.Position - mHrp.Position).Magnitude < 40 then
-                        local oneShot = (FeatureStates["OneShotKitsune"] == true or _G.FruitsM1Enable == true)
                         local selectedWeapon = "None"
-                        if oneShot and Setting.Fruit and Setting.Fruit.Enable then
-                            selectedWeapon = "Blox Fruit"
-                        else
-                            if Setting.Melee and Setting.Melee.Enable then
-                                selectedWeapon = "Melee"
-                            end
-                            if Setting.Fruit and Setting.Fruit.Enable then
-                                selectedWeapon = "Blox Fruit"
-                            end
-                            if Setting.Sword and Setting.Sword.Enable then
-                                selectedWeapon = "Sword"
-                            end
-                            if Setting.Gun and Setting.Gun.Enable then
-                                selectedWeapon = "Gun"
+                        local char = lp.Character
+                        local bp = lp:FindFirstChildOfClass("Backpack") or lp:FindFirstChild("Backpack")
+                        if char and bp then
+                            for _, category in ipairs(Spooky.AutoBountyWeaponPriority.GetOrder()) do
+                                if not Spooky.AutoBountyWeaponPriority.IsBlocked(category, nil) then
+                                    local tool = Spooky.AutoBountyWeaponPriority.FindTool(category, char, bp)
+                                    if tool then
+                                        selectedWeapon = (category == "Fruit") and "Blox Fruit" or category
+                                        break
+                                    end
+                                end
                             end
                         end
                         getgenv().weapon = selectedWeapon
@@ -19197,17 +19549,17 @@ do
 
                         local gotoPos
                         local targetY = math.max(targetHRP.Position.Y, 18)
-                        if dist < 40 then
-
-                            gotoPos = targetHRP.CFrame * CFrame.new(0, 7.5, -6)
-                        elseif dist < 120 then
-
-                            gotoPos = targetHRP.CFrame * CFrame.new(0, 14, -12)
+                        local stayDistance = math.clamp(tonumber(getgenv().SpookyAutoBountyTargetDistance) or 12, 0, 150)
+                        local look = targetHRP.CFrame.LookVector
+                        local flatLook = Vector3.new(look.X, 0, look.Z)
+                        if flatLook.Magnitude < 0.001 then
+                            flatLook = Vector3.new(0, 0, -1)
                         else
-
-                            local transitY = math.max(targetY + 45, 95)
-                            gotoPos = CFrame.new(targetHRP.Position.X, transitY, targetHRP.Position.Z)
+                            flatLook = flatLook.Unit
                         end
+                        local desiredPos = targetHRP.Position - flatLook * stayDistance
+                        desiredPos = Vector3.new(desiredPos.X, targetY, desiredPos.Z)
+                        gotoPos = CFrame.lookAt(desiredPos, Vector3.new(targetHRP.Position.X, targetY, targetHRP.Position.Z))
                         if gotoPos.Position.Y < 18 then
                             gotoPos = CFrame.new(gotoPos.Position.X, 18, gotoPos.Position.Z) * gotoPos.Rotation
                         end
@@ -19562,7 +19914,7 @@ end
         AutoBountyPage.ScrollingEnabled = true
         AutoBountyPage.ScrollingDirection = Enum.ScrollingDirection.Y
         AutoBountyPage.ScrollBarThickness = 6
-        AutoBountyPage.CanvasSize = UDim2.new(0, 0, 0, 980)
+        AutoBountyPage.CanvasSize = UDim2.new(0, 0, 0, 970)
         AutoBountyPage.ScrollBarImageTransparency = 0.15
     end)
     local c1 = makeCard(AutoBountyPage, "Auto Bounty", "Auto Bounty", 146, 2)
@@ -19748,6 +20100,11 @@ end
     Spooky.AutoBountyWeaponsUI.Create("Sword", 0.5)
     Spooky.AutoBountyWeaponsUI.Create("Gun", 0.75)
     Spooky.AutoBountyWeaponsUI.Refresh()
+    -- Weapon selection/priority was moved into Skill Whitelist.
+    for _, key in ipairs({"Melee", "Fruit", "Sword", "Gun"}) do
+        local oldButton = Spooky.AutoBountyWeaponsUI.Buttons[key]
+        if oldButton then oldButton.Visible = false end
+    end
     do
         local ui = Spooky.AutoBountyPriorityUI or {}
         Spooky.AutoBountyPriorityUI = ui
@@ -19802,6 +20159,8 @@ end
             end
         )
         ui.button.TextSize = 9.5
+        -- The visible priority control now lives in Skill Whitelist.
+        ui.button.Visible = false
         Spooky.AutoBountyPriorityButton = ui.button
         ui.Refresh()
     end
@@ -20020,7 +20379,7 @@ end
         end
     end)
 
-     Spooky.AutoBountyManualCard = makeCard(AutoBountyPage, "Manual Target Settings", "Ручные настройки цели", 118, 698)
+     Spooky.AutoBountyManualCard = makeCard(AutoBountyPage, "Manual Target Settings", "Ручные настройки цели", 150, 698)
     Spooky.AutoBountyManualUI = Spooky.AutoBountyManualUI or {}
     Spooky.AutoBountyManualUI.Button = createActionButton(
         Spooky.AutoBountyManualCard,
@@ -20059,9 +20418,31 @@ end
     Spooky.AutoBountyManualUI.DistanceInput.ClearTextOnFocus = false
     Instance.new("UICorner", Spooky.AutoBountyManualUI.DistanceInput).CornerRadius = UDim.new(0, 6)
     Instance.new("UIStroke", Spooky.AutoBountyManualUI.DistanceInput).Color = Color3.fromRGB(55, 55, 68)
+    Spooky.AutoBountyManualUI.TargetDistanceLabel = Instance.new("TextLabel", Spooky.AutoBountyManualCard)
+    Spooky.AutoBountyManualUI.TargetDistanceLabel.Size = UDim2.new(0.46, -4, 0, 30)
+    Spooky.AutoBountyManualUI.TargetDistanceLabel.Position = UDim2.new(0, 10, 0, 68)
+    Spooky.AutoBountyManualUI.TargetDistanceLabel.BackgroundTransparency = 1
+    Spooky.AutoBountyManualUI.TargetDistanceLabel.Font = Enum.Font.GothamMedium
+    Spooky.AutoBountyManualUI.TargetDistanceLabel.TextSize = 10.5
+    Spooky.AutoBountyManualUI.TargetDistanceLabel.TextColor3 = Color3.fromRGB(215, 215, 230)
+    Spooky.AutoBountyManualUI.TargetDistanceLabel.TextXAlignment = Enum.TextXAlignment.Left
+    Spooky.AutoBountyManualUI.TargetDistanceLabel.Text = "Stay distance (0-150 studs):"
+    Spooky.AutoBountyManualUI.TargetDistanceInput = Instance.new("TextBox", Spooky.AutoBountyManualCard)
+    Spooky.AutoBountyManualUI.TargetDistanceInput.Size = UDim2.new(0.20, -4, 0, 30)
+    Spooky.AutoBountyManualUI.TargetDistanceInput.Position = UDim2.new(0.77, 0, 0, 68)
+    Spooky.AutoBountyManualUI.TargetDistanceInput.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+    Spooky.AutoBountyManualUI.TargetDistanceInput.Font = Enum.Font.GothamBold
+    Spooky.AutoBountyManualUI.TargetDistanceInput.TextSize = 12
+    Spooky.AutoBountyManualUI.TargetDistanceInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Spooky.AutoBountyManualUI.TargetDistanceInput.Text = tostring(math.floor(getgenv().SpookyAutoBountyTargetDistance or 12))
+    Spooky.AutoBountyManualUI.TargetDistanceInput.PlaceholderText = "12"
+    Spooky.AutoBountyManualUI.TargetDistanceInput.ClearTextOnFocus = false
+    Instance.new("UICorner", Spooky.AutoBountyManualUI.TargetDistanceInput).CornerRadius = UDim.new(0, 6)
+    Instance.new("UIStroke", Spooky.AutoBountyManualUI.TargetDistanceInput).Color = Color3.fromRGB(55, 55, 68)
+
     Spooky.AutoBountyManualUI.Info = Instance.new("TextLabel", Spooky.AutoBountyManualCard)
     Spooky.AutoBountyManualUI.Info.Size = UDim2.new(1, -20, 0, 26)
-    Spooky.AutoBountyManualUI.Info.Position = UDim2.new(0, 10, 0, 72)
+    Spooky.AutoBountyManualUI.Info.Position = UDim2.new(0, 10, 0, 108)
     Spooky.AutoBountyManualUI.Info.BackgroundTransparency = 1
     Spooky.AutoBountyManualUI.Info.Font = Enum.Font.GothamMedium
     Spooky.AutoBountyManualUI.Info.TextSize = 10
@@ -20072,6 +20453,7 @@ end
         local ui = Spooky.AutoBountyManualUI
         local enabled = getgenv().SpookyAutoBountySkipFarEnabled == true
         local distance = tonumber(getgenv().SpookyAutoBountySkipFarDistance) or 300
+        local targetDistance = math.clamp(tonumber(getgenv().SpookyAutoBountyTargetDistance) or 12, 0, 150)
         if ui.Button and ui.Button.Parent then
             ui.Button.Text = (CurrentLang == "ES") and ("Пропускать дальних: " .. (enabled and "ON" or "OFF")) or ("Skip Far: " .. (enabled and "ON" or "OFF"))
             ui.Button.BackgroundColor3 = enabled and Color3.fromRGB(28, 38, 30) or Color3.fromRGB(24, 24, 30)
@@ -20086,12 +20468,31 @@ end
         if ui.DistanceInput and ui.DistanceInput.Parent then
             ui.DistanceInput.Text = tostring(math.floor(distance))
         end
+        if ui.TargetDistanceLabel and ui.TargetDistanceLabel.Parent then
+            ui.TargetDistanceLabel.Text = (CurrentLang == "ES") and "Distancia al objetivo (0-150):" or "Stay distance (0-150 studs):"
+        end
+        if ui.TargetDistanceInput and ui.TargetDistanceInput.Parent then
+            ui.TargetDistanceInput.Text = tostring(math.floor(targetDistance))
+        end
         if ui.Info and ui.Info.Parent then
             ui.Info.Text = (CurrentLang == "ES")
-                and "Если цель дальше заданной дистанции, Auto Bounty сразу пропускает её. One Shot держит Fruit и временно переключается только на готовую, не заблокированную способность."
-                or "Targets beyond this distance are skipped immediately. One Shot mode keeps Fruit equipped and only swaps for ready, non-blacklisted abilities."
+                and "Ниже задаются Skip Far и дистанция удержания рядом с целью. One Shot использует только готовые способности из whitelist."
+                or "Set Skip Far and the distance Auto Bounty should maintain from the target. One Shot uses only ready whitelisted abilities."
         end
     end
+    Spooky.AutoBountyManualUI.TargetDistanceInput.FocusLost:Connect(function()
+        local value = tonumber(Spooky.AutoBountyManualUI.TargetDistanceInput.Text)
+        if value then
+            value = math.clamp(math.floor(value), 0, 150)
+            getgenv().SpookyAutoBountyTargetDistance = value
+            Spooky.AutoBountyPersistence.Save(getgenv().SpookyAutoBountyEnabled == true)
+            Spooky.AutoBountyManualUI.Refresh()
+            notifyToggle((CurrentLang == "ES") and ("Distancia al objetivo: " .. tostring(value) .. " studs") or ("Target distance: " .. tostring(value) .. " studs"), true)
+        else
+            Spooky.AutoBountyManualUI.Refresh()
+        end
+    end)
+
     Spooky.AutoBountyManualUI.DistanceInput.FocusLost:Connect(function()
         local value = tonumber(Spooky.AutoBountyManualUI.DistanceInput.Text)
         if value then
@@ -20106,7 +20507,7 @@ end
     end)
     Spooky.AutoBountyManualUI.Refresh()
 
-    local c6AutoTeam = makeCard(AutoBountyPage, "Auto Join Team", "Auto Unirse a Equipo", 84, 828)
+    local c6AutoTeam = makeCard(AutoBountyPage, "Auto Join Team", "Auto Unirse a Equipo", 84, 858)
     Spooky.AutoTeam = Spooky.AutoTeam or {}
     Spooky.AutoTeam.Current = "Pirates"
     pcall(function()
@@ -20368,6 +20769,13 @@ do
             end
         end)
         notifyToggle((CurrentLang == "ES") and "Cambiando a Marinos..." or "Switching to Marines...", true)
+    end)
+
+    local mUninject = makeCard(MiscPage, "Uninject", "Desinyectar", 66, 260)
+    createActionButton(mUninject, "UNINJECT", "DESINYECTAR", UDim2.new(1, -16, 0, 28), UDim2.fromOffset(8, 26), function()
+        if _G.Spooky_Cleanup then
+            pcall(_G.Spooky_Cleanup)
+        end
     end)
 
     local ReportPage = createScrollPage("Report_Page", 620)
@@ -22265,30 +22673,30 @@ do
     local currentSkillKey = nil
     local lastSkillTime = 0
     local SKILL_KEYS = { "Z", "X", "C", "V", "F", "TAP" }
-    local BlacklistedKeys = {
+    local WhitelistedKeys = {
         Melee = { Z = false, X = false, C = false, all = false },
         Fruit = { M1 = false, TAP = false, Z = false, X = false, C = false, V = false, F = false, all = false },
         Sword = { Z = false, X = false, all = false },
         Gun   = { Z = false, X = false, TAP = false, M1 = false, all = false }
     }
-    FeatureCallbacks["BL_Melee"]   = function(v) BlacklistedKeys.Melee.all = v end
-    FeatureCallbacks["BL_MeleeZ"]  = function(v) BlacklistedKeys.Melee.Z   = v end
-    FeatureCallbacks["BL_MeleeX"]  = function(v) BlacklistedKeys.Melee.X   = v end
-    FeatureCallbacks["BL_MeleeC"]  = function(v) BlacklistedKeys.Melee.C   = v end
-    FeatureCallbacks["BL_Fruit"]   = function(v) BlacklistedKeys.Fruit.all = v end
-    FeatureCallbacks["BL_FruitM1"] = function(v) BlacklistedKeys.Fruit.M1  = v; BlacklistedKeys.Fruit.TAP = v end
-    FeatureCallbacks["BL_FruitZ"]  = function(v) BlacklistedKeys.Fruit.Z   = v end
-    FeatureCallbacks["BL_FruitX"]  = function(v) BlacklistedKeys.Fruit.X   = v end
-    FeatureCallbacks["BL_FruitC"]  = function(v) BlacklistedKeys.Fruit.C   = v end
-    FeatureCallbacks["BL_FruitV"]  = function(v) BlacklistedKeys.Fruit.V   = v end
-    FeatureCallbacks["BL_FruitF"]  = function(v) BlacklistedKeys.Fruit.F   = v end
-    FeatureCallbacks["BL_Sword"]   = function(v) BlacklistedKeys.Sword.all = v end
-    FeatureCallbacks["BL_SwordZ"]  = function(v) BlacklistedKeys.Sword.Z   = v end
-    FeatureCallbacks["BL_SwordX"]  = function(v) BlacklistedKeys.Sword.X   = v end
-    FeatureCallbacks["BL_Gun"]     = function(v) BlacklistedKeys.Gun.all   = v end
-    FeatureCallbacks["BL_GunZ"]    = function(v) BlacklistedKeys.Gun.Z     = v end
-    FeatureCallbacks["BL_GunX"]    = function(v) BlacklistedKeys.Gun.X     = v end
-    FeatureCallbacks["BL_GunTAP"]  = function(v) BlacklistedKeys.Gun.TAP   = v; BlacklistedKeys.Gun.M1 = v end
+    FeatureCallbacks["WL_Melee"]   = function(v) WhitelistedKeys.Melee.all = v end
+    FeatureCallbacks["WL_MeleeZ"]  = function(v) WhitelistedKeys.Melee.Z   = v end
+    FeatureCallbacks["WL_MeleeX"]  = function(v) WhitelistedKeys.Melee.X   = v end
+    FeatureCallbacks["WL_MeleeC"]  = function(v) WhitelistedKeys.Melee.C   = v end
+    FeatureCallbacks["WL_Fruit"]   = function(v) WhitelistedKeys.Fruit.all = v end
+    FeatureCallbacks["WL_FruitM1"] = function(v) WhitelistedKeys.Fruit.M1  = v; WhitelistedKeys.Fruit.TAP = v end
+    FeatureCallbacks["WL_FruitZ"]  = function(v) WhitelistedKeys.Fruit.Z   = v end
+    FeatureCallbacks["WL_FruitX"]  = function(v) WhitelistedKeys.Fruit.X   = v end
+    FeatureCallbacks["WL_FruitC"]  = function(v) WhitelistedKeys.Fruit.C   = v end
+    FeatureCallbacks["WL_FruitV"]  = function(v) WhitelistedKeys.Fruit.V   = v end
+    FeatureCallbacks["WL_FruitF"]  = function(v) WhitelistedKeys.Fruit.F   = v end
+    FeatureCallbacks["WL_Sword"]   = function(v) WhitelistedKeys.Sword.all = v end
+    FeatureCallbacks["WL_SwordZ"]  = function(v) WhitelistedKeys.Sword.Z   = v end
+    FeatureCallbacks["WL_SwordX"]  = function(v) WhitelistedKeys.Sword.X   = v end
+    FeatureCallbacks["WL_Gun"]     = function(v) WhitelistedKeys.Gun.all   = v end
+    FeatureCallbacks["WL_GunZ"]    = function(v) WhitelistedKeys.Gun.Z     = v end
+    FeatureCallbacks["WL_GunX"]    = function(v) WhitelistedKeys.Gun.X     = v end
+    FeatureCallbacks["WL_GunTAP"]  = function(v) WhitelistedKeys.Gun.TAP   = v; WhitelistedKeys.Gun.M1 = v end
     local function crewIdentity(value)
         if value == nil or value == false then return nil end
         local text=tostring(value):match("^%s*(.-)%s*$"):lower()
@@ -22645,35 +23053,35 @@ do
         if string.find(name, "yama") then return true end
         return false
     end
-    local function isKeyCurrentlyBlacklisted(key)
-        if FeatureStates["BlacklistAimbot"] == false then return false end
+    local function isKeyCurrentlyWhitelisted(key)
+        if FeatureStates["WhitelistAimbot"] == false then return false end
         local char = LocalPlayer.Character
         if char and (not currentHeldTool or not currentHeldTool.Parent or currentHeldTool.Parent ~= char) then
             currentHeldTool = char:FindFirstChildOfClass("Tool")
             currentHeldCategory = getToolCategory(currentHeldTool)
         end
         local cat = currentHeldCategory or "Melee"
-        local prefix="BL_" .. cat
-        if FeatureStates[prefix] ~= nil then BlacklistedKeys[cat].all=FeatureStates[prefix] end
+        local prefix="WL_" .. cat
+        if FeatureStates[prefix] ~= nil then WhitelistedKeys[cat].all=FeatureStates[prefix] end
         for _,k in ipairs({"Z","X","C","V","F","M1","TAP"}) do
             local id=prefix .. ((cat=="Gun" and k=="M1") and "TAP" or (cat=="Fruit" and k=="TAP") and "M1" or k)
-            if FeatureStates[id]~=nil then BlacklistedKeys[cat][k]=FeatureStates[id] end
+            if FeatureStates[id]~=nil then WhitelistedKeys[cat][k]=FeatureStates[id] end
         end
-        if BlacklistedKeys[cat] then
-            if BlacklistedKeys[cat].all then return true end
+        if WhitelistedKeys[cat] then
+            if WhitelistedKeys[cat].all then return false end
             local checkKey = key or currentSkillKey
-            if checkKey then
-                if BlacklistedKeys[cat][checkKey] == true then return true end
-                if (checkKey == "TAP" or checkKey == "M1") and (BlacklistedKeys[cat].M1 or BlacklistedKeys[cat].TAP) then return true end
-            end
+            if not checkKey then return true end
+            if WhitelistedKeys[cat][checkKey] == true then return false end
+            if (checkKey == "TAP" or checkKey == "M1") and (WhitelistedKeys[cat].M1 or WhitelistedKeys[cat].TAP) then return false end
+            return true
         end
-        return false
+        return true
     end
-    _G.SpookySkillBlocked = isKeyCurrentlyBlacklisted
+    _G.SpookySkillBlocked = isKeyCurrentlyWhitelisted
     local function faceTarget(targetPos)
         if not targetPos then return end
-        if FeatureStates["BlacklistAimbot"] ~= false then
-            if isKeyCurrentlyBlacklisted(currentSkillKey) then return end
+        if FeatureStates["WhitelistAimbot"] ~= false then
+            if isKeyCurrentlyWhitelisted(currentSkillKey) then return end
         end
         local char = LocalPlayer.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -22694,7 +23102,7 @@ do
         lastSkillTime = os.clock()
         if (FeatureStates["AimbotPlayer1"] or FeatureStates["AimbotNpc1"]) then
             local targetPos = aimbot1TargetPos
-            if targetPos and not isKeyCurrentlyBlacklisted(key) then
+            if targetPos and not isKeyCurrentlyWhitelisted(key) then
                 task.spawn(function() faceTarget(targetPos) end)
             end
         end
@@ -23013,7 +23421,7 @@ do
         if not tool then return nil end
         currentHeldTool, currentHeldCategory = tool, getToolCategory(tool)
         local key = currentSkillKey or "TAP"
-        if isKeyCurrentlyBlacklisted(key) then return nil end
+        if isKeyCurrentlyWhitelisted(key) then return nil end
 
         if currentHeldCategory == "Gun" and (key == "TAP" or key == "M1") then return nil end
         local model, position
@@ -25054,70 +25462,10 @@ do
         return table.concat(parts)
     end
 
-    local function setupGeneralESP(player)
-        if player == LocalPlayer or not FeatureStates["GeneralEsp"] then return end
-        local char = player.Character
-        if not char then return end
-        local hrp = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head") or char.PrimaryPart
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if not hrp or not hum then return end
-        if bespokeESPStore[player] and bespokeESPStore[player].style == "General" and bespokeESPStore[player].bb and bespokeESPStore[player].bb.Parent then
-            return
-        end
-        cleanPlayerBespokeESP(player)
-        local pData = getPlayerData(player)
-        local teamCol = _G.G_ESP_Color or pData.color
-        local bb = Instance.new("BillboardGui")
-        bb.Name = "SacredESP_Billboard"
-        bb.Adornee = hrp
-        local isSimple = (_G.G_ESP_SimpleMode or (FeatureStates and FeatureStates["SimpleEsp"])) == true
-        bb.Size = isSimple and UDim2.new(0, 140, 0, 32) or UDim2.new(0, 220, 0, 75)
-        local offX = _G.G_ESP_TagOffsetX or 0
-        local offY = _G.G_ESP_TagOffsetY or 0
-        bb.StudsOffset = Vector3.new(offX, 3.2 + offY, 0)
-        bb.AlwaysOnTop = true
-        bb.MaxDistance = 100000
-        bb.Parent = hrp
-        local lbl = Instance.new("TextLabel", bb)
-        lbl.Name = "TextLabel"
-        lbl.Size = UDim2.new(1, 0, 1, 0)
-        lbl.BackgroundTransparency = 1
-        lbl.Font = _G.G_ESP_Font or Enum.Font.GothamBold
-        lbl.TextSize = _G.G_ESP_TextSize or 11.5
-        lbl.RichText = true
-        lbl.TextStrokeTransparency = 0
-        lbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-        lbl.TextColor3 = teamCol
-        lbl.TextYAlignment = Enum.TextYAlignment.Top
-        local myRoot = getMyRoot()
-        local myPos = myRoot and myRoot.Position or Vector3.zero
-        lbl.Text = buildESPText(player, hum, hrp, pData, myPos)
-        applyAvatarThumb(bb, player)
-        local hl = nil
-        if _G.G_ESP_Chams ~= false then
-            pcall(function()
-                hl = Instance.new("Highlight")
-                hl.Name = "SacredESP_Highlight"
-                hl.Adornee = char
-                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                hl.FillColor = teamCol
-                hl.FillTransparency = 0.5
-                hl.OutlineColor = teamCol
-                hl.OutlineTransparency = 0
-                local dist = math.floor((myPos - hrp.Position).Magnitude)
-                hl.Enabled = (dist <= 150)
-                hl.Parent = char
-            end)
-        end
-        bespokeESPStore[player] = {
-            bb = bb,
-            lbl = lbl,
-            hl = hl,
-            player = player,
-            char = char,
-            style = "General"
-        }
-    end
+    -- Shared with the premium monitor so its preview uses the exact live ESP text/data.
+    _G.SpookyGetPlayerData = getPlayerData
+    _G.SpookyBuildESPText = buildESPText
+
     local function setupPlayerESP(player)
         if player == LocalPlayer or not (FeatureStates["PlayerEsp"] or FeatureStates["RainbowEsp"] or FeatureStates["SimpleEsp"] or _G.G_ESP_SimpleMode) then return end
         local char = player.Character
@@ -25138,7 +25486,7 @@ do
         bb.Size = isSimple and UDim2.new(0, 140, 0, 32) or UDim2.new(0, 180, 0, 36)
         local offX = _G.G_ESP_TagOffsetX or 0
         local offY = _G.G_ESP_TagOffsetY or 0
-        bb.StudsOffset = Vector3.new(offX, 2.8 + offY, 0)
+        bb.StudsOffset = Vector3.new(offX, 0.9 + offY, 0)
         bb.AlwaysOnTop = true
         bb.MaxDistance = 100000
         bb.Parent = hrp
@@ -25435,7 +25783,6 @@ do
         if square.Visible then square.Visible = false end
     end
     local function rebuildESPs()
-        local isGen     = FeatureStates["GeneralEsp"]
         local isPlayer  = FeatureStates["PlayerEsp"]
         local isMatcha  = FeatureStates["EspMatcha"]
         local isNpc     = FeatureStates["NpcEsp"]
@@ -25446,14 +25793,10 @@ do
             cleanPlayerBespokeESP(p)
         end
         bespokeESPStore = {}
-        if isGen or isPlayer or isRainbow or isSimple then
+        if isPlayer or isRainbow or isSimple then
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= LocalPlayer and p.Character then
-                    if isGen then
-                        setupGeneralESP(p)
-                    else
-                        setupPlayerESP(p)
-                    end
+                    setupPlayerESP(p)
                 end
             end
         end
@@ -25487,10 +25830,15 @@ do
         end
     end
     _G.RebuildSpookyESPs = rebuildESPs
+    _G.SpookyRefreshPremiumESPMonitor = _G.SpookyRefreshPremiumESPMonitor or function()
+        pcall(function()
+            if _G.SpookyPremiumESPMonitorRefresh then _G.SpookyPremiumESPMonitorRefresh() end
+        end)
+    end
     local lastEspTextUpdate = 0
     local rainbowHue = 0
     RunService.RenderStepped:Connect(function(dt)
-        local anyActive = FeatureStates["GeneralEsp"] or FeatureStates["PlayerEsp"] or FeatureStates["NpcEsp"]
+        local anyActive = FeatureStates["PlayerEsp"] or FeatureStates["NpcEsp"]
             or FeatureStates["FruitEsp"] or FeatureStates["RainbowEsp"] or FeatureStates["EspMatcha"]
             or FeatureStates["SimpleEsp"] or _G.G_ESP_SimpleMode
         if not anyActive then return end
@@ -25526,7 +25874,7 @@ do
                             end
                             local offX = _G.G_ESP_TagOffsetX or 0
                             local offY = _G.G_ESP_TagOffsetY or 0
-                            data.bb.StudsOffset = Vector3.new(offX, (data.style == "Player" and 2.8 or 3.2) + offY, 0)
+                            data.bb.StudsOffset = Vector3.new(offX, 0.9 + offY, 0)
                             applyAvatarThumb(data.bb, p)
                             if data.hl then
                                 data.hl.FillColor = finalCol
@@ -25710,14 +26058,11 @@ do
                 p.CharacterAdded:Connect(function(char)
                     task.wait(0.3)
                     if not char.Parent then return end
-                    local isGen     = FeatureStates["GeneralEsp"]
                     local isPlayer  = FeatureStates["PlayerEsp"]
                     local isRainbow = FeatureStates["RainbowEsp"]
                     local isMatcha  = FeatureStates["EspMatcha"]
                     local isSimple  = (_G.G_ESP_SimpleMode == true or (FeatureStates and FeatureStates["SimpleEsp"] == true))
-                    if isGen then
-                        setupGeneralESP(p)
-                    elseif isPlayer or isRainbow or isSimple then
+                    if isPlayer or isRainbow or isSimple then
                         setupPlayerESP(p)
                     end
                     if isMatcha then
@@ -25781,7 +26126,7 @@ do
     task.spawn(function()
         while isCurrentSession() do
             task.wait(2.5)
-            local anyActive = FeatureStates["GeneralEsp"] or FeatureStates["PlayerEsp"] or FeatureStates["NpcEsp"]
+            local anyActive = FeatureStates["PlayerEsp"] or FeatureStates["NpcEsp"]
                 or FeatureStates["FruitEsp"] or FeatureStates["RainbowEsp"] or FeatureStates["EspMatcha"]
                 or FeatureStates["SimpleEsp"] or _G.G_ESP_SimpleMode
             if anyActive then
@@ -25789,13 +26134,17 @@ do
             end
         end
     end)
-    for _, espN in ipairs({"GeneralEsp", "PlayerEsp", "NpcEsp", "FruitEsp", "RainbowEsp", "EspMatcha", "SimpleEsp"}) do
-        FeatureCallbacks[espN] = rebuildESPs
+    for _, espN in ipairs({"PlayerEsp", "NpcEsp", "FruitEsp", "RainbowEsp", "EspMatcha"}) do
+        FeatureCallbacks[espN] = function(v)
+            rebuildESPs()
+            if _G.SpookyRefreshPremiumESPMonitor then task.defer(_G.SpookyRefreshPremiumESPMonitor) end
+        end
     end
     FeatureCallbacks["SimpleEsp"] = function(v)
         FeatureStates["SimpleEsp"] = v
         _G.G_ESP_SimpleMode = v
         rebuildESPs()
+        if _G.SpookyRefreshPremiumESPMonitor then task.defer(_G.SpookyRefreshPremiumESPMonitor) end
         notifyToggle((CurrentLang == "ES") and ("ESP Simple: " .. (v and "ON" or "OFF")) or ("Simple ESP: " .. (v and "ON" or "OFF")), v)
     end
 end
@@ -26538,7 +26887,13 @@ registerConnection(UserInputService.InputBegan:Connect(function(input, gpe)
 end))
 pcall(function()
     if isfile and isfile("Spooky_AutoLoad_FullConfig.txt") and _G.Spooky_LoadFullConfig then
-        if isfile("Spooky_AutoLoad_Config.json") then
+        local selectedPath
+        if isfile("Spooky_AutoLoad_ConfigPath.txt") and readfile then
+            selectedPath = readfile("Spooky_AutoLoad_ConfigPath.txt")
+        end
+        if selectedPath and isfile(selectedPath) then
+            _G.Spooky_LoadFullConfig(selectedPath)
+        elseif isfile("Spooky_AutoLoad_Config.json") then
             _G.Spooky_LoadFullConfig("Spooky_AutoLoad_Config.json")
         else
             _G.Spooky_LoadFullConfig()
@@ -27264,6 +27619,19 @@ do
     end
 end
 
+
+-- Removed sidebar pages: Player list, Macro, Dungeons, TP Map, Report, Functions.
+pcall(function()
+    local removedPages = {
+        "ControlPeople_Page", "Macro_Page", "Dungeons_Page",
+        "TPIslands_Page", "Report_Page", "Functions_Page"
+    }
+    for _, pageName in ipairs(removedPages) do
+        local page = PagesFolder and PagesFolder:FindFirstChild(pageName)
+        if page then page:Destroy() end
+    end
+end)
+
 for name, enabled in pairs(FeatureStates) do
     if enabled and FeatureCallbacks[name] and Spooky.AppliedFeatures[name] ~= FeatureCallbacks[name] then
         setFeatureState(name,true)
@@ -27299,5 +27667,1699 @@ task.spawn(function()
     end)
 end)
 
+
+
+-- Premium visual skin: glassmorphism + animated-wallpaper-ready background.
+local function __SpookyBuildPremiumSkin()
+    local function ensureCorner(obj, radius)
+        local c = obj:FindFirstChildOfClass("UICorner")
+        if not c then c = Instance.new("UICorner", obj) end
+        c.CornerRadius = UDim.new(0, radius)
+        return c
+    end
+
+    local function ensureGradient(obj, colors, rotation, transparency)
+        local g = obj:FindFirstChild("PremiumGradient")
+        if not g then
+            g = Instance.new("UIGradient")
+            g.Name = "PremiumGradient"
+            g.Parent = obj
+        end
+        g.Color = ColorSequence.new(colors)
+        g.Rotation = rotation or 0
+        if transparency then g.Transparency = transparency end
+        return g
+    end
+
+    -- Background layer. Use an uploaded image/animated image asset here.
+    local bg = MAINUIframe:FindFirstChild("SpookyUIWallpaper")
+    if bg then
+        bg.ZIndex = 0
+        bg.Image = tostring(_G.SpookyUIBackgroundAsset or bg.Image)
+        bg.ImageTransparency = tonumber(_G.SpookyUIBackgroundTransparency) or 0.30
+        bg.ScaleType = Enum.ScaleType.Crop
+    end
+
+    local bgTint = MAINUIframe:FindFirstChild("PremiumBackgroundTint")
+    if not bgTint then
+        bgTint = Instance.new("Frame")
+        bgTint.Name = "PremiumBackgroundTint"
+        bgTint.Size = UDim2.fromScale(1, 1)
+        bgTint.BackgroundColor3 = Color3.fromRGB(5, 7, 16)
+        bgTint.BackgroundTransparency = 0.22
+        bgTint.BorderSizePixel = 0
+        bgTint.ZIndex = 1
+        bgTint.Parent = MAINUIframe
+        ensureCorner(bgTint, 18)
+    end
+    ensureGradient(bgTint, {
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 12, 25)),
+        ColorSequenceKeypoint.new(0.42, Color3.fromRGB(13, 10, 25)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(4, 6, 13))
+    }, 35)
+
+    local glass = MAINUIframe:FindFirstChild("PremiumGlass")
+    if not glass then
+        glass = Instance.new("Frame")
+        glass.Name = "PremiumGlass"
+        glass.Size = UDim2.new(1, -2, 1, -2)
+        glass.Position = UDim2.fromOffset(1, 1)
+        glass.BackgroundColor3 = Color3.fromRGB(9, 10, 18)
+        glass.BackgroundTransparency = 0.30
+        glass.BorderSizePixel = 0
+        glass.ZIndex = 2
+        glass.Parent = MAINUIframe
+        ensureCorner(glass, 17)
+        local gs = Instance.new("UIStroke", glass)
+        gs.Name = "GlassStroke"
+        gs.Color = Color3.fromRGB(125, 115, 175)
+        gs.Transparency = 0.72
+        gs.Thickness = 1
+    end
+
+    local sidebarGlass = MAINUIframe:FindFirstChild("PremiumSidebar")
+    if not sidebarGlass then
+        sidebarGlass = Instance.new("Frame")
+        sidebarGlass.Name = "PremiumSidebar"
+        sidebarGlass.Size = UDim2.new(0, 146, 1, -18)
+        sidebarGlass.Position = UDim2.fromOffset(9, 9)
+        sidebarGlass.BackgroundColor3 = Color3.fromRGB(8, 10, 18)
+        sidebarGlass.BackgroundTransparency = 0.22
+        sidebarGlass.BorderSizePixel = 0
+        sidebarGlass.ZIndex = 3
+        sidebarGlass.Parent = MAINUIframe
+        ensureCorner(sidebarGlass, 15)
+        ensureGradient(sidebarGlass, {
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(19, 18, 34)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 9, 17))
+        }, 90)
+        local ss = Instance.new("UIStroke", sidebarGlass)
+        ss.Color = Color3.fromRGB(105, 98, 145)
+        ss.Transparency = 0.72
+        ss.Thickness = 1
+    end
+
+    local brand = MAINUIframe:FindFirstChild("PremiumBrand")
+    if not brand then
+        brand = Instance.new("Frame")
+        brand.Name = "PremiumBrand"
+        brand.Size = UDim2.new(0, 126, 0, 54)
+        brand.Position = UDim2.fromOffset(19, 17)
+        brand.BackgroundTransparency = 1
+        brand.ZIndex = 20
+        brand.Parent = MAINUIframe
+
+        local logo = Instance.new("ImageLabel", brand)
+        logo.Name = "Logo"
+        logo.Size = UDim2.fromOffset(38, 38)
+        logo.Position = UDim2.fromOffset(0, 3)
+        logo.BackgroundColor3 = Color3.fromRGB(15, 17, 28)
+        logo.BackgroundTransparency = 0.12
+        logo.BorderSizePixel = 0
+        logo.Image = "rbxassetid://124747708335361"
+        logo.ScaleType = Enum.ScaleType.Fit
+        logo.ImageColor3 = Color3.fromRGB(205, 185, 255)
+        logo.ZIndex = 21
+        ensureCorner(logo, 12)
+        local ls = Instance.new("UIStroke", logo)
+        ls.Color = Color3.fromRGB(139, 113, 255)
+        ls.Transparency = 0.25
+        ls.Thickness = 1.2
+
+        local name = Instance.new("TextLabel", brand)
+        name.Name = "Title"
+        name.Size = UDim2.new(1, -46, 0, 22)
+        name.Position = UDim2.fromOffset(46, 1)
+        name.BackgroundTransparency = 1
+        name.Font = Enum.Font.GothamBold
+        name.Text = "SPOOKY"
+        name.TextSize = 15
+        name.TextColor3 = Color3.fromRGB(245, 243, 255)
+        name.TextXAlignment = Enum.TextXAlignment.Left
+        name.ZIndex = 21
+
+        local sub = Instance.new("TextLabel", brand)
+        sub.Name = "Subtitle"
+        sub.Size = UDim2.new(1, -46, 0, 18)
+        sub.Position = UDim2.fromOffset(46, 23)
+        sub.BackgroundTransparency = 1
+        sub.Font = Enum.Font.GothamMedium
+        sub.Text = "PREMIUM CONTROL"
+        sub.TextSize = 7.5
+        sub.TextColor3 = Color3.fromRGB(151, 145, 178)
+        sub.TextXAlignment = Enum.TextXAlignment.Left
+        sub.ZIndex = 21
+    end
+
+    local topbar = MAINUIframe:FindFirstChild("PremiumTopbar")
+    if not topbar then
+        topbar = Instance.new("Frame")
+        topbar.Name = "PremiumTopbar"
+        topbar.Size = UDim2.new(1, -174, 0, 52)
+        topbar.Position = UDim2.fromOffset(164, 8)
+        topbar.BackgroundTransparency = 1
+        topbar.ZIndex = 19
+        topbar.Parent = MAINUIframe
+
+        local line = Instance.new("Frame", topbar)
+        line.Size = UDim2.new(1, -8, 0, 1)
+        line.Position = UDim2.new(0, 4, 1, -1)
+        line.BackgroundColor3 = Color3.fromRGB(105, 96, 150)
+        line.BackgroundTransparency = 0.72
+        line.BorderSizePixel = 0
+
+        local status = Instance.new("Frame", topbar)
+        status.Size = UDim2.fromOffset(104, 26)
+        status.Position = UDim2.new(1, -108, 0.5, -13)
+        status.BackgroundColor3 = Color3.fromRGB(17, 22, 29)
+        status.BackgroundTransparency = 0.12
+        status.BorderSizePixel = 0
+        status.ZIndex = 20
+        ensureCorner(status, 13)
+        local dot = Instance.new("Frame", status)
+        dot.Size = UDim2.fromOffset(7, 7)
+        dot.Position = UDim2.fromOffset(10, 9)
+        dot.BackgroundColor3 = Color3.fromRGB(95, 245, 180)
+        dot.BorderSizePixel = 0
+        dot.ZIndex = 21
+        ensureCorner(dot, 8)
+        local st = Instance.new("TextLabel", status)
+        st.Size = UDim2.new(1, -25, 1, 0)
+        st.Position = UDim2.fromOffset(22, 0)
+        st.BackgroundTransparency = 1
+        st.Font = Enum.Font.GothamBold
+        st.Text = "SYSTEM ONLINE"
+        st.TextSize = 8
+        st.TextColor3 = Color3.fromRGB(185, 215, 205)
+        st.TextXAlignment = Enum.TextXAlignment.Left
+        st.ZIndex = 21
+    end
+
+    local close = MAINUIframe:FindFirstChild("PremiumClose")
+    if not close then
+        close = Instance.new("TextButton")
+        close.Name = "PremiumClose"
+        close.Size = UDim2.fromOffset(28, 28)
+        close.Position = UDim2.new(1, -39, 0, 20)
+        close.BackgroundColor3 = Color3.fromRGB(28, 21, 34)
+        close.BackgroundTransparency = 0.08
+        close.BorderSizePixel = 0
+        close.Text = "×"
+        close.Font = Enum.Font.GothamBold
+        close.TextSize = 17
+        close.TextColor3 = Color3.fromRGB(235, 225, 255)
+        close.AutoButtonColor = false
+        close.ZIndex = 40
+        close.Parent = MAINUIframe
+        ensureCorner(close, 10)
+        local cs = Instance.new("UIStroke", close)
+        cs.Color = Color3.fromRGB(118, 101, 160)
+        cs.Transparency = 0.45
+        cs.Thickness = 1
+        close.MouseEnter:Connect(function()
+            TweenService:Create(close, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(55, 28, 55)}):Play()
+        end)
+        close.MouseLeave:Connect(function()
+            TweenService:Create(close, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(28, 21, 34)}):Play()
+        end)
+        close.MouseButton1Click:Connect(function()
+            MAINUIframe.Visible = false
+            if MobileToggle then MobileToggle.Visible = true end
+        end)
+    end
+
+    -- Restyle existing navigation and controls without touching their callbacks.
+    for _, data in pairs(NavButtons) do
+        local btn = data.btn
+        if btn then
+            btn.Size = UDim2.new(1, -10, 0, 34)
+            btn.BackgroundColor3 = Color3.fromRGB(13, 15, 24)
+            btn.BackgroundTransparency = 0.18
+            ensureCorner(btn, 10)
+            local st = data.st
+            if st then
+                st.Color = Color3.fromRGB(72, 68, 98)
+                st.Transparency = 0.55
+                st.Thickness = 1
+            end
+            local lbl = data.lbl
+            if lbl then
+                lbl.Font = Enum.Font.GothamSemibold
+                lbl.TextSize = 10.5
+                lbl.TextColor3 = Color3.fromRGB(166, 164, 190)
+            end
+            local ind = data.ind
+            if ind then
+                ind.BackgroundColor3 = Color3.fromRGB(157, 126, 255)
+            end
+        end
+    end
+
+    -- Premium glass cards/toggles throughout every page.
+    local function styleControl(obj)
+        if obj:IsA("Frame") and obj:GetAttribute("SpookyControlGroup") then
+            obj.BackgroundColor3 = Color3.fromRGB(13, 15, 24)
+            obj.BackgroundTransparency = 0.18
+            ensureCorner(obj, 12)
+            local st = obj:FindFirstChildOfClass("UIStroke")
+            if st then
+                st.Color = Color3.fromRGB(73, 69, 100)
+                st.Transparency = 0.52
+                st.Thickness = 1
+            end
+            ensureGradient(obj, {
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(22, 21, 34)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 12, 20))
+            }, 90)
+        elseif obj:IsA("TextButton") and obj.Name ~= "PremiumClose" then
+            local title = obj:FindFirstChild("TitleLabel")
+            if title then
+                obj.BackgroundColor3 = Color3.fromRGB(17, 19, 29)
+                obj.BackgroundTransparency = 0.10
+                ensureCorner(obj, 9)
+                local st = obj:FindFirstChildOfClass("UIStroke")
+                if st then
+                    st.Color = Color3.fromRGB(61, 61, 82)
+                    st.Transparency = 0.35
+                end
+                title.TextColor3 = Color3.fromRGB(215, 214, 231)
+            end
+        end
+    end
+
+    for _, d in ipairs(MAINUIframe:GetDescendants()) do
+        pcall(styleControl, d)
+    end
+
+    -- Public wallpaper API: pass an uploaded Roblox image/animated-image asset id.
+    _G.SpookySetUIWallpaper = function(assetId, transparency)
+        local wallpaper = MAINUIframe:FindFirstChild("SpookyUIWallpaper")
+        if not wallpaper then return false end
+        local value = tostring(assetId or "")
+        if value == "" then return false end
+        if not string.find(value, "rbxassetid://", 1, true) then
+            value = "rbxassetid://" .. value
+        end
+        wallpaper.Image = value
+        wallpaper.ImageTransparency = math.clamp(tonumber(transparency) or 0.30, 0, 1)
+        _G.SpookyUIBackgroundAsset = value
+        _G.SpookyUIBackgroundTransparency = wallpaper.ImageTransparency
+        return true
+    end
+
+    -- Give newly-created controls the same premium treatment.
+    MAINUIframe.DescendantAdded:Connect(function(obj)
+        task.defer(function()
+            if obj and obj.Parent then pcall(styleControl, obj) end
+        end)
+    end)
+end
+__SpookyBuildPremiumSkin()
+
+
+-- KIRA premium UI replacement: rebuilt from scratch around the existing page/control instances.
+local function __SpookyBuildPremiumUI()
+    local oldRoot = MAINUIframe
+    local savedPages = {}
+    if PagesFolder then
+        for _, page in ipairs(PagesFolder:GetChildren()) do
+            if page:IsA("GuiObject") and string.find(page.Name, "_Page", 1, true) then
+                table.insert(savedPages, page)
+                page.Parent = nil
+            end
+        end
+    end
+
+    -- Remove the previous visual shell only; the already-built page/control instances are preserved above.
+    pcall(function()
+        if oldRoot and oldRoot.Parent then oldRoot:Destroy() end
+    end)
+    pcall(function()
+        local oldToggle = ScreenGui:FindFirstChild("Spooky_MobileToggle")
+        if oldToggle then oldToggle:Destroy() end
+    end)
+
+    NavButtons = {}
+    AllCardFrames = AllCardFrames or {}
+    AllUIButtons = AllUIButtons or {}
+
+    local function corner(parent, radius)
+        local c = parent:FindFirstChildOfClass("UICorner") or Instance.new("UICorner", parent)
+        c.CornerRadius = UDim.new(0, radius)
+        return c
+    end
+    local function border(parent, color, alpha, thickness)
+        local s = parent:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke", parent)
+        s.Color = color
+        s.Transparency = alpha or 0
+        s.Thickness = thickness or 1
+        return s
+    end
+    local function text(parent, name, value, size, pos, font, color, align)
+        local t = Instance.new("TextLabel")
+        t.Name = name
+        t.Text = value
+        t.TextSize = size or 12
+        t.Font = font or Enum.Font.GothamMedium
+        t.TextColor3 = color or Color3.fromRGB(220, 222, 232)
+        t.BackgroundTransparency = 1
+        t.Position = pos or UDim2.fromOffset(0, 0)
+        t.Size = UDim2.new(1, 0, 0, size + 8)
+        t.TextXAlignment = align or Enum.TextXAlignment.Left
+        t.Parent = parent
+        return t
+    end
+    local function panel(parent, name, size, pos, bg, alpha, radius)
+        local f = Instance.new("Frame")
+        f.Name = name
+        f.Size = size
+        f.Position = pos
+        f.BackgroundColor3 = bg
+        f.BackgroundTransparency = alpha or 0
+        f.BorderSizePixel = 0
+        f.Parent = parent
+        corner(f, radius or 10)
+        return f
+    end
+
+    local root = Instance.new("Frame")
+    root.Name = "Spooky_PremiumRoot"
+    root.Size = UDim2.fromOffset(820, 500)
+    root.Position = UDim2.fromScale(0.5, 0.5)
+    root.AnchorPoint = Vector2.new(0.5, 0.5)
+    root.BackgroundColor3 = Color3.fromRGB(6, 8, 13)
+    root.BorderSizePixel = 0
+    root.ClipsDescendants = true
+    root.Visible = true
+    root.Parent = ScreenGui
+    corner(root, 16)
+    border(root, Color3.fromRGB(76, 84, 108), 0.35, 1)
+    MAINUIframe = root
+    getgenv().SpookyUIFrame = root
+    getgenv().SpookyUICorner = root:FindFirstChildOfClass("UICorner")
+    getgenv().SpookyUIStroke = root:FindFirstChildOfClass("UIStroke")
+
+    UIScale = Instance.new("UIScale", root)
+    UIScale.Scale = math.clamp(currentBaseScale or 0.58, 0.55, 1.10)
+
+    local wallpaper = Instance.new("ImageLabel")
+    wallpaper.Name = "SpookyUIWallpaper"
+    wallpaper.Size = UDim2.fromScale(1, 1)
+    wallpaper.BackgroundTransparency = 1
+    wallpaper.Image = tostring(_G.SpookyUIBackgroundAsset or "rbxassetid://98256258425377")
+    wallpaper.ImageTransparency = tonumber(_G.SpookyUIBackgroundTransparency) or 0.42
+    wallpaper.ScaleType = Enum.ScaleType.Crop
+    wallpaper.ZIndex = 0
+    wallpaper.Parent = root
+    corner(wallpaper, 16)
+    getgenv().SpookyUIWallpaper = wallpaper
+
+    local tint = panel(root, "WallpaperTint", UDim2.fromScale(1, 1), UDim2.fromOffset(0, 0), Color3.fromRGB(3, 6, 12), 0.24, 16)
+    tint.ZIndex = 1
+
+    local topbar = panel(root, "Topbar", UDim2.new(1, -24, 0, 48), UDim2.fromOffset(12, 12), Color3.fromRGB(7, 10, 17), 0.08, 11)
+    topbar.ZIndex = 10
+    border(topbar, Color3.fromRGB(66, 74, 96), 0.55, 1)
+
+    local brand = text(topbar, "Brand", "SPOOKY", 15, UDim2.fromOffset(15, 7), Enum.Font.GothamBlack, Color3.fromRGB(240, 243, 250))
+    brand.Size = UDim2.fromOffset(92, 20)
+    local sub = text(topbar, "BrandSub", "CONTROL PANEL", 8, UDim2.fromOffset(16, 26), Enum.Font.GothamMedium, Color3.fromRGB(118, 128, 151))
+    sub.Size = UDim2.fromOffset(100, 13)
+
+    local online = panel(topbar, "Online", UDim2.fromOffset(92, 25), UDim2.new(1, -206, 0.5, -12), Color3.fromRGB(8, 18, 17), 0, 7)
+    border(online, Color3.fromRGB(49, 171, 135), 0.55, 1)
+    local dot = Instance.new("Frame", online)
+    dot.Size = UDim2.fromOffset(6, 6)
+    dot.Position = UDim2.fromOffset(9, 9)
+    dot.BackgroundColor3 = Color3.fromRGB(66, 224, 166)
+    dot.BorderSizePixel = 0
+    corner(dot, 6)
+    local onlineLbl = text(online, "Label", "SYSTEM ONLINE", 8, UDim2.fromOffset(21, 0), Enum.Font.GothamBold, Color3.fromRGB(150, 230, 202))
+    onlineLbl.Size = UDim2.new(1, -25, 1, 0)
+    onlineLbl.TextYAlignment = Enum.TextYAlignment.Center
+
+    local close = Instance.new("TextButton")
+    close.Name = "PremiumClose"
+    close.Size = UDim2.fromOffset(28, 28)
+    close.Position = UDim2.new(1, -42, 0.5, -14)
+    close.BackgroundColor3 = Color3.fromRGB(19, 22, 31)
+    close.Text = "×"
+    close.TextSize = 18
+    close.Font = Enum.Font.GothamMedium
+    close.TextColor3 = Color3.fromRGB(205, 210, 222)
+    close.BorderSizePixel = 0
+    close.ZIndex = 20
+    close.Parent = topbar
+    corner(close, 7)
+    border(close, Color3.fromRGB(65, 71, 89), 0.35, 1)
+
+    local nav = panel(root, "Navigation", UDim2.new(1, -24, 0, 38), UDim2.fromOffset(12, 68), Color3.fromRGB(5, 8, 14), 0.04, 9)
+    nav.ZIndex = 10
+    nav.ClipsDescendants = true
+    border(nav, Color3.fromRGB(56, 64, 84), 0.62, 1)
+    local navLayout = Instance.new("UIListLayout", nav)
+    navLayout.FillDirection = Enum.FillDirection.Horizontal
+    navLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    navLayout.Padding = UDim.new(0, 3)
+    navLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+
+    local content = panel(root, "Content", UDim2.new(1, -24, 1, -164), UDim2.fromOffset(12, 116), Color3.fromRGB(6, 9, 16), 0.10, 11)
+    content.ZIndex = 5
+    content.ClipsDescendants = true
+    border(content, Color3.fromRGB(60, 68, 88), 0.66, 1)
+
+    -- ESP Monitor is a floating child of the same ScreenGui, not part of the main content column.
+    local inspector = panel(ScreenGui, "Inspector", UDim2.fromOffset(760, 650), UDim2.fromScale(0.62, 0.52), Color3.fromRGB(6, 9, 15), 0.04, 12)
+    inspector.AnchorPoint = Vector2.new(0.5, 0.5)
+    inspector.ZIndex = 100
+    inspector.ClipsDescendants = true
+    border(inspector, Color3.fromRGB(60, 68, 88), 0.42, 1.2)
+    _G.SpookyESPMonitorWindow = inspector
+
+    local insTitle = text(inspector, "Title", "ESP MONITOR", 11, UDim2.fromOffset(12, 11), Enum.Font.GothamBold, Color3.fromRGB(232, 236, 245))
+    insTitle.Size = UDim2.fromOffset(170, 20)
+    insTitle.ZIndex = 122
+    local insSub = text(inspector, "Sub", "LOCAL PLAYER / VISUAL PREVIEW", 7, UDim2.fromOffset(12, 31), Enum.Font.GothamMedium, Color3.fromRGB(105, 116, 139))
+    insSub.Size = UDim2.fromOffset(205, 12)
+    insSub.ZIndex = 122
+
+    local viewport = Instance.new("ViewportFrame")
+    viewport.Name = "RobloxAvatarPreview"
+    viewport.Size = UDim2.new(1, -300, 0, 330)
+    viewport.Position = UDim2.fromOffset(290, 58)
+    viewport.BackgroundColor3 = Color3.fromRGB(8, 12, 20)
+    viewport.BackgroundTransparency = 0.08
+    viewport.BorderSizePixel = 0
+    viewport.ClipsDescendants = true
+    viewport.Ambient = Color3.fromRGB(190, 198, 220)
+    viewport.LightColor = Color3.fromRGB(255, 255, 255)
+    viewport.LightDirection = Vector3.new(-1, -1, -1)
+    viewport.ZIndex = 7
+    viewport.Parent = inspector
+    corner(viewport, 10)
+    border(viewport, Color3.fromRGB(62, 73, 96), 0.5, 1)
+
+    local world = Instance.new("WorldModel", viewport)
+    local cam = Instance.new("Camera", viewport)
+    viewport.CurrentCamera = cam
+
+    local function cloneCharacterForViewport(character, worldModel)
+        if not character or not character.Parent then return nil end
+        local oldArchivable = character.Archivable
+        local ok, clone = pcall(function()
+            character.Archivable = true
+            return character:Clone()
+        end)
+        pcall(function() character.Archivable = oldArchivable end)
+        if not ok or not clone then return nil end
+
+        for _, d in ipairs(clone:GetDescendants()) do
+            if d:IsA("Script") or d:IsA("LocalScript") or d:IsA("ModuleScript") then
+                d:Destroy()
+            elseif d:IsA("BasePart") then
+                d.Anchored = true
+                d.CanCollide = false
+                d.CanTouch = false
+                d.CanQuery = false
+            elseif d:IsA("Humanoid") then
+                d.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+                d.AutoRotate = false
+            end
+        end
+        clone.Parent = worldModel
+        pcall(function() clone:PivotTo(CFrame.new(0, 0, 0)) end)
+        return clone
+    end
+
+    -- Live ESP monitor mirrors the embedded ESP customization controls: active feature state,
+    -- tag contents, tag offset, box style, tracer, avatar thumbnail and chams.
+    local monitorStatus = text(inspector, "ESPStatus", "● ESP PREVIEW: CHECKING", 8,
+        UDim2.fromOffset(290, 42), Enum.Font.GothamBold, Color3.fromRGB(110, 225, 176))
+    monitorStatus.Size = UDim2.fromOffset(205, 14)
+    monitorStatus.ZIndex = 20
+
+    local monitorTarget = text(inspector, "ESPPreviewTarget", "TARGET: LOCAL PLAYER", 7,
+        UDim2.fromOffset(290, 393), Enum.Font.GothamMedium, Color3.fromRGB(120, 132, 153))
+    monitorTarget.Size = UDim2.fromOffset(205, 14)
+    monitorTarget.ZIndex = 20
+
+    local overlay = Instance.new("Frame")
+    overlay.Name = "LiveESPOverlay"
+    overlay.Size = UDim2.fromScale(1, 1)
+    overlay.BackgroundTransparency = 1
+    overlay.BorderSizePixel = 0
+    overlay.ClipsDescendants = true
+    overlay.ZIndex = 10
+    overlay.Parent = viewport
+
+    local overlayBox = Instance.new("Frame")
+    overlayBox.Name = "ESPBox"
+    overlayBox.Size = UDim2.fromOffset(76, 128)
+    overlayBox.AnchorPoint = Vector2.new(0.5, 0.5)
+    overlayBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+    overlayBox.BackgroundTransparency = 1
+    overlayBox.ZIndex = 12
+    overlayBox.Parent = overlay
+    local overlayBoxStroke = Instance.new("UIStroke", overlayBox)
+    overlayBoxStroke.Thickness = 2
+    overlayBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    local cornerContainer = Instance.new("Frame", overlayBox)
+    cornerContainer.Size = UDim2.fromScale(1, 1)
+    cornerContainer.BackgroundTransparency = 1
+    cornerContainer.ZIndex = 13
+    local cornerLines = {}
+    local function addMonitorCorner(right, bottom)
+        local h = Instance.new("Frame", cornerContainer)
+        h.Size = UDim2.fromOffset(14, 2)
+        h.Position = UDim2.new(right and 1 or 0, right and -14 or 0, bottom and 1 or 0, bottom and -2 or 0)
+        h.BorderSizePixel = 0
+        h.ZIndex = 13
+        table.insert(cornerLines, h)
+        local v = Instance.new("Frame", cornerContainer)
+        v.Size = UDim2.fromOffset(2, 14)
+        v.Position = UDim2.new(right and 1 or 0, right and -2 or 0, bottom and 1 or 0, bottom and -14 or 0)
+        v.BorderSizePixel = 0
+        v.ZIndex = 13
+        table.insert(cornerLines, v)
+    end
+    addMonitorCorner(false, false)
+    addMonitorCorner(true, false)
+    addMonitorCorner(false, true)
+    addMonitorCorner(true, true)
+
+    local overlayTracer = Instance.new("Frame", overlay)
+    overlayTracer.Name = "ESPTracer"
+    overlayTracer.Size = UDim2.fromOffset(2, 32)
+    overlayTracer.Position = UDim2.new(0.5, -1, 1, -32)
+    overlayTracer.BorderSizePixel = 0
+    overlayTracer.ZIndex = 12
+
+    local overlayTag = Instance.new("Frame", overlay)
+    overlayTag.Name = "ESPTag"
+    overlayTag.Size = UDim2.fromOffset(190, 75)
+    overlayTag.AnchorPoint = Vector2.new(0.5, 0.5)
+    overlayTag.Position = UDim2.new(0.5, 0, 0.5, -8)
+    overlayTag.BackgroundTransparency = 1
+    overlayTag.ZIndex = 15
+
+    local overlayAvatar = Instance.new("ImageLabel", overlayTag)
+    overlayAvatar.Name = "AvatarThumb"
+    overlayAvatar.Size = UDim2.fromOffset(26, 26)
+    overlayAvatar.Position = UDim2.new(0.5, -13, 0, -14)
+    overlayAvatar.BackgroundColor3 = Color3.fromRGB(25, 22, 36)
+    overlayAvatar.BackgroundTransparency = 0.15
+    overlayAvatar.ZIndex = 16
+    Instance.new("UICorner", overlayAvatar).CornerRadius = UDim.new(1, 0)
+    local overlayAvatarStroke = Instance.new("UIStroke", overlayAvatar)
+    overlayAvatarStroke.Thickness = 1.2
+
+    local overlayText = Instance.new("TextLabel", overlayTag)
+    overlayText.Name = "ESPText"
+    overlayText.Size = UDim2.fromScale(1, 1)
+    overlayText.Position = UDim2.fromOffset(0, 14)
+    overlayText.BackgroundTransparency = 1
+    overlayText.Font = Enum.Font.GothamBold
+    overlayText.TextSize = 11
+    overlayText.TextColor3 = Color3.new(1, 1, 1)
+    overlayText.TextStrokeTransparency = 0.2
+    overlayText.TextStrokeColor3 = Color3.new(0, 0, 0)
+    overlayText.RichText = true
+    overlayText.TextWrapped = true
+    overlayText.TextYAlignment = Enum.TextYAlignment.Top
+    overlayText.ZIndex = 17
+
+    local overlayHpTrack = Instance.new("Frame", overlay)
+    overlayHpTrack.Name = "HPBar"
+    overlayHpTrack.Size = UDim2.fromOffset(6, 128)
+    overlayHpTrack.Position = UDim2.new(0.5, -45, 0.5, -64)
+    overlayHpTrack.BackgroundColor3 = Color3.fromRGB(14, 14, 20)
+    overlayHpTrack.BorderSizePixel = 0
+    overlayHpTrack.ZIndex = 13
+    Instance.new("UICorner", overlayHpTrack).CornerRadius = UDim.new(0, 3)
+    local overlayHpFill = Instance.new("Frame", overlayHpTrack)
+    overlayHpFill.Size = UDim2.fromScale(1, 1)
+    overlayHpFill.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+    overlayHpFill.BorderSizePixel = 0
+    overlayHpFill.ZIndex = 14
+    Instance.new("UICorner", overlayHpFill).CornerRadius = UDim.new(0, 3)
+    local overlayHpLabel = Instance.new("TextLabel", overlayHpTrack)
+    overlayHpLabel.Size = UDim2.fromOffset(38, 14)
+    overlayHpLabel.Position = UDim2.fromOffset(-40, 0)
+    overlayHpLabel.BackgroundTransparency = 1
+    overlayHpLabel.Font = Enum.Font.GothamBold
+    overlayHpLabel.TextSize = 9
+    overlayHpLabel.TextXAlignment = Enum.TextXAlignment.Right
+    overlayHpLabel.TextColor3 = Color3.fromRGB(46, 204, 113)
+    overlayHpLabel.ZIndex = 15
+
+    local overlayChams = Instance.new("Frame", overlay)
+    overlayChams.Name = "Chams"
+    overlayChams.Size = UDim2.fromOffset(100, 150)
+    overlayChams.AnchorPoint = Vector2.new(0.5, 0.5)
+    overlayChams.Position = UDim2.new(0.5, 0, 0.5, 0)
+    overlayChams.BackgroundTransparency = 0.82
+    overlayChams.BorderSizePixel = 0
+    overlayChams.ZIndex = 11
+    Instance.new("UICorner", overlayChams).CornerRadius = UDim.new(0, 10)
+    local overlayChamsStroke = Instance.new("UIStroke", overlayChams)
+    overlayChamsStroke.Thickness = 1.5
+    overlayChamsStroke.Transparency = 0.4
+
+    local function getESPEnabled()
+        local fs = FeatureStates or {}
+        return fs["PlayerEsp"] == true
+            or fs["SimpleEsp"] == true
+            or fs["RainbowEsp"] == true
+            or fs["EspMatcha"] == true
+            or _G.G_ESP_SimpleMode == true
+    end
+
+    local function getESPMode()
+        local fs = FeatureStates or {}
+        if fs["PlayerEsp"] then return "PLAYER" end
+        if fs["RainbowEsp"] then return "RAINBOW" end
+        if fs["EspMatcha"] then return "MATCHA" end
+        if fs["SimpleEsp"] or _G.G_ESP_SimpleMode then return "SIMPLE" end
+        return "OFF"
+    end
+
+    local function setMonitorVisibility(enabled)
+        local active = enabled == true
+        local simple = (_G.G_ESP_SimpleMode == true or (FeatureStates and FeatureStates["SimpleEsp"] == true))
+        local color = _G.G_ESP_Color or _G.CurrentAccentColor or Color3.fromRGB(160, 130, 255)
+        overlayBoxStroke.Color = color
+        overlayTracer.BackgroundColor3 = color
+        overlayAvatarStroke.Color = color
+        overlayText.Font = _G.G_ESP_Font or Enum.Font.GothamBold
+        overlayText.TextSize = _G.G_ESP_TextSize or 11
+        overlayText.TextColor3 = color
+        overlayHpTrack.Visible = active and (_G.G_ESP_HP ~= false) and not simple
+        overlayTracer.Visible = active and (_G.G_ESP_Tracers == true)
+        overlayBox.Visible = active and (_G.G_ESP_Boxes ~= false) and (_G.G_ESP_BoxStyle or "Full") ~= "None"
+        overlayChams.Visible = active and (_G.G_ESP_Chams ~= false)
+        overlayChams.BackgroundColor3 = color
+        overlayChamsStroke.Color = color
+        overlayAvatar.Visible = active and (_G.G_ESP_AvatarPhoto ~= false) and not simple
+        cornerContainer.Visible = active and (_G.G_ESP_Boxes ~= false) and (_G.G_ESP_BoxStyle or "Full") == "Corners"
+        overlayBoxStroke.Enabled = active and (_G.G_ESP_Boxes ~= false) and (_G.G_ESP_BoxStyle or "Full") == "Full"
+        overlayTag.Visible = active
+        overlayHpLabel.Visible = active and (_G.G_ESP_HP ~= false) and not simple
+    end
+
+    local lastMonitorTarget
+    local monitorRotation = 0
+    local lastThumbUserId
+
+    local function renderAvatar()
+        local enabled = getESPEnabled()
+        local target = LocalPlayer and LocalPlayer.Character
+        local targetPlayer = LocalPlayer
+        local myRoot = LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+        if myRoot then
+            local nearest, nearestDist
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer and plr.Character then
+                    local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                    local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+                    if hrp and hum and hum.Health > 0 then
+                        local dist = (myRoot.Position - hrp.Position).Magnitude
+                        if not nearestDist or dist < nearestDist then
+                            nearest, nearestDist = plr, dist
+                        end
+                    end
+                end
+            end
+            if nearest then targetPlayer, target = nearest, nearest.Character end
+        end
+
+        if target ~= lastMonitorTarget then
+            for _, child in ipairs(world:GetChildren()) do child:Destroy() end
+            lastMonitorTarget = target
+        end
+
+        local clone
+        for _, child in ipairs(world:GetChildren()) do
+            if child:IsA("Model") then clone = child break end
+        end
+        if target and not clone then clone = cloneCharacterForViewport(target, world) end
+
+        if clone then
+            local _, size = clone:GetBoundingBox()
+            local height = math.max(size.Y, 4)
+            local width = math.max(size.X, size.Z, 2)
+            cam.FieldOfView = 38
+            local halfFov = math.rad(cam.FieldOfView * 0.5)
+            local fitExtent = math.max(height, width * 1.35)
+            local distance = math.max(7, (fitExtent * 0.62) / math.tan(halfFov))
+            cam.CFrame = CFrame.new(Vector3.new(0, height * 0.46, distance), Vector3.new(0, height * 0.46, 0))
+
+            local hum = target:FindFirstChildOfClass("Humanoid")
+            local targetRoot = target:FindFirstChild("HumanoidRootPart") or target.PrimaryPart
+            local pData = targetPlayer and (_G.SpookyGetPlayerData and _G.SpookyGetPlayerData(targetPlayer) or nil)
+            local myPos = myRoot and myRoot.Position or Vector3.zero
+            local textValue
+            if hum and targetRoot and _G.SpookyBuildESPText and pData then
+                local ok, result = pcall(_G.SpookyBuildESPText, targetPlayer, hum, targetRoot, pData, myPos)
+                if ok and type(result) == "string" then textValue = result end
+            end
+            if not textValue then
+                local simple = (_G.G_ESP_SimpleMode == true or (FeatureStates and FeatureStates["SimpleEsp"] == true))
+                if simple then
+                    local maxH = hum and math.max(hum.MaxHealth, 1) or 100
+                    local curH = hum and math.clamp(hum.Health, 0, maxH) or maxH
+                    textValue = "[" .. (targetPlayer and (targetPlayer.DisplayName or targetPlayer.Name) or "Player") .. "]\nHP: " .. math.floor(curH) .. "/" .. math.floor(maxH)
+                else
+                    textValue = "[Player] " .. (targetPlayer and (targetPlayer.DisplayName or targetPlayer.Name) or "Player")
+                end
+            end
+            overlayText.Text = textValue
+
+            local color = _G.G_ESP_Color or (pData and pData.color) or _G.CurrentAccentColor or Color3.fromRGB(160, 130, 255)
+            if getESPMode() == "RAINBOW" then color = Color3.fromHSV((os.clock() * 0.18) % 1, 1, 1) end
+            overlayText.TextColor3 = color
+            overlayBoxStroke.Color = color
+            overlayTracer.BackgroundColor3 = color
+            overlayAvatarStroke.Color = color
+            overlayChams.BackgroundColor3 = color
+            overlayChamsStroke.Color = color
+
+            local hp = hum and math.clamp(hum.Health / math.max(hum.MaxHealth, 1), 0, 1) or 1
+            overlayHpFill.Size = UDim2.new(1, 0, hp, 0)
+            overlayHpFill.Position = UDim2.new(0, 0, 1 - hp, 0)
+            overlayHpLabel.Text = tostring(math.floor(hp * 100)) .. "%"
+
+            local ox = _G.G_ESP_TagOffsetX or 0
+            local oy = _G.G_ESP_TagOffsetY or 0
+            overlayTag.Position = UDim2.new(0.5, math.floor(ox * 10), 0.5, -8 - math.floor(oy * 10))
+
+            if targetPlayer then
+                monitorTarget.Text = "TARGET: " .. (targetPlayer.DisplayName or targetPlayer.Name)
+                if _G.G_ESP_AvatarPhoto ~= false and lastThumbUserId ~= targetPlayer.UserId then
+                    lastThumbUserId = targetPlayer.UserId
+                    task.spawn(function()
+                        pcall(function()
+                            local thumb = Players:GetUserThumbnailAsync(targetPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+                            if thumb and lastThumbUserId == targetPlayer.UserId then overlayAvatar.Image = thumb end
+                        end)
+                    end)
+                end
+            else
+                monitorTarget.Text = "TARGET: WAITING FOR CHARACTER"
+            end
+
+            local mode = getESPMode()
+            monitorStatus.Text = enabled and ("● ESP PREVIEW: ENABLED · " .. mode) or "● ESP PREVIEW: DISABLED"
+            monitorStatus.TextColor3 = enabled and Color3.fromRGB(110, 225, 176) or Color3.fromRGB(225, 125, 125)
+            setMonitorVisibility(enabled)
+        else
+            monitorTarget.Text = "TARGET: AVATAR UNAVAILABLE"
+            monitorStatus.Text = enabled and "● ESP PREVIEW: ENABLED" or "● ESP PREVIEW: DISABLED"
+            monitorStatus.TextColor3 = enabled and Color3.fromRGB(110, 225, 176) or Color3.fromRGB(225, 125, 125)
+            setMonitorVisibility(enabled)
+        end
+    end
+    renderAvatar()
+    _G.SpookyPremiumESPMonitorRefresh = renderAvatar
+    task.spawn(function()
+        while inspector.Parent and isCurrentSession() do
+            task.wait(0.35)
+            pcall(function()
+                renderAvatar()
+                if getESPEnabled() then
+                    monitorRotation = (monitorRotation + 2.2) % 360
+                    local model
+                    for _, child in ipairs(world:GetChildren()) do
+                        if child:IsA("Model") then model = child break end
+                    end
+                    if model then pcall(function() model:PivotTo(CFrame.new(0, 0, 0) * CFrame.Angles(0, math.rad(monitorRotation), 0)) end) end
+                end
+            end)
+        end
+    end)
+    if LocalPlayer then
+        LocalPlayer.CharacterAdded:Connect(function()
+            task.wait(0.8)
+            renderAvatar()
+        end)
+    end
+
+    local playerCard = panel(inspector, "PlayerCard", UDim2.new(1, -300, 0, 48), UDim2.fromOffset(290, 415), Color3.fromRGB(10, 13, 21), 0, 9)
+    border(playerCard, Color3.fromRGB(57, 67, 88), 0.55, 1)
+    local pName = text(playerCard, "Name", LocalPlayer and LocalPlayer.DisplayName or "LocalPlayer", 10, UDim2.fromOffset(10, 7), Enum.Font.GothamBold, Color3.fromRGB(225, 229, 238))
+    pName.Size = UDim2.fromOffset(200, 16)
+    local pUser = text(playerCard, "User", LocalPlayer and ("@" .. LocalPlayer.Name) or "@player", 8, UDim2.fromOffset(10, 24), Enum.Font.GothamMedium, Color3.fromRGB(110, 120, 140))
+    pUser.Size = UDim2.fromOffset(200, 13)
+
+    local listTitle = text(inspector, "PlayersTitle", "VISIBLE PLAYERS", 8, UDim2.fromOffset(292, 474), Enum.Font.GothamBold, Color3.fromRGB(118, 128, 150))
+    listTitle.Size = UDim2.fromOffset(200, 15)
+    local playerList = Instance.new("ScrollingFrame")
+    playerList.Name = "ESPPlayerList"
+    playerList.Size = UDim2.new(1, -300, 1, -505)
+    playerList.Position = UDim2.fromOffset(290, 493)
+    playerList.BackgroundTransparency = 1
+    playerList.BorderSizePixel = 0
+    playerList.ScrollBarThickness = 2
+    playerList.ScrollBarImageColor3 = Color3.fromRGB(74, 83, 105)
+    playerList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    playerList.ClipsDescendants = true
+    playerList.CanvasSize = UDim2.new()
+    playerList.ZIndex = 8
+    playerList.Parent = inspector
+    local plPad = Instance.new("UIPadding", playerList)
+    plPad.PaddingTop = UDim.new(0, 2)
+    plPad.PaddingBottom = UDim.new(0, 2)
+    plPad.PaddingLeft = UDim.new(0, 1)
+    plPad.PaddingRight = UDim.new(0, 1)
+    local pl = Instance.new("UIListLayout", playerList)
+    pl.Padding = UDim.new(0, 4)
+    pl.SortOrder = Enum.SortOrder.LayoutOrder
+    pl.HorizontalAlignment = Enum.HorizontalAlignment.Left
+
+    local function refreshPlayers()
+        for _, c in ipairs(playerList:GetChildren()) do
+            if c:IsA("Frame") then c:Destroy() end
+        end
+        local myRoot = LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        local players = Players:GetPlayers()
+        playerList.CanvasPosition = Vector2.zero
+        table.sort(players, function(a, b) return a.Name:lower() < b.Name:lower() end)
+        for i, plr in ipairs(players) do
+            if plr ~= LocalPlayer then
+                local row = panel(playerList, "P" .. i, UDim2.new(1, -2, 0, 25), UDim2.fromOffset(0, 0), Color3.fromRGB(11, 15, 23), 0, 6)
+                row.LayoutOrder = i
+                row.ClipsDescendants = true
+                local d = Instance.new("Frame", row)
+                d.Size = UDim2.fromOffset(5, 5)
+                d.Position = UDim2.fromOffset(8, 10)
+                d.BackgroundColor3 = Color3.fromRGB(84, 174, 255)
+                d.BorderSizePixel = 0
+                corner(d, 5)
+                local n = text(row, "N", plr.DisplayName or plr.Name, 8, UDim2.fromOffset(20, 2), Enum.Font.GothamSemibold, Color3.fromRGB(205, 210, 222))
+                n.Size = UDim2.new(1, -70, 0, 20)
+                local dist = "--"
+                local theirRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                if myRoot and theirRoot then
+                    dist = tostring(math.floor((myRoot.Position - theirRoot.Position).Magnitude)) .. "s"
+                end
+                local ds = text(row, "D", dist, 7, UDim2.new(1, -45, 2, 0), Enum.Font.GothamMedium, Color3.fromRGB(106, 118, 140), Enum.TextXAlignment.Right)
+                ds.Size = UDim2.new(0, 34, 1, 0)
+            end
+        end
+    end
+    refreshPlayers()
+    Players.PlayerAdded:Connect(function()
+        task.defer(refreshPlayers)
+        task.defer(renderAvatar)
+    end)
+    Players.PlayerRemoving:Connect(function()
+        task.defer(refreshPlayers)
+        task.defer(renderAvatar)
+    end)
+
+    -- Keep every monitor section inside the window when the window is resized.
+    local embeddedControls = nil
+    local embeddedOffsetBar = nil
+    local embeddedApply = nil
+    local embeddedReset = nil
+
+    local function layoutInspector(w, h)
+        w = tonumber(w) or inspector.AbsoluteSize.X
+        h = tonumber(h) or inspector.AbsoluteSize.Y
+        local leftW = math.clamp(math.floor(w * 0.36), 245, 275)
+        local rightX = leftW + 14
+        local rightW = math.max(320, w - rightX - 10)
+        local viewportH = math.clamp(h - 260, 245, 350)
+
+        if embeddedControls and embeddedControls.Parent == inspector then
+            embeddedControls.Position = UDim2.fromOffset(10, 58)
+            embeddedControls.Size = UDim2.fromOffset(leftW, math.max(250, h - 138))
+            embeddedControls.CanvasSize = UDim2.new(0, 0, 0, 830)
+        end
+        if embeddedOffsetBar and embeddedOffsetBar.Parent == inspector then
+            embeddedOffsetBar.Size = UDim2.fromOffset(leftW - 12, 22)
+            embeddedOffsetBar.Position = UDim2.fromOffset(16, h - 62)
+        end
+        if embeddedApply and embeddedApply.Parent == inspector then
+            embeddedApply.Size = UDim2.new(0, math.floor(leftW * 0.48) - 4, 0, 26)
+            embeddedApply.Position = UDim2.fromOffset(16, h - 36)
+        end
+        if embeddedReset and embeddedReset.Parent == inspector then
+            embeddedReset.Size = UDim2.new(0, math.floor(leftW * 0.48) - 4, 0, 26)
+            embeddedReset.Position = UDim2.fromOffset(16 + math.floor(leftW * 0.52), h - 36)
+        end
+
+        viewport.Position = UDim2.fromOffset(rightX, 58)
+        viewport.Size = UDim2.new(0, rightW, 0, viewportH)
+        monitorStatus.Position = UDim2.fromOffset(rightX, 42)
+        monitorTarget.Position = UDim2.fromOffset(rightX, 58 + viewportH + 5)
+        playerCard.Position = UDim2.fromOffset(rightX, 58 + viewportH + 27)
+        playerCard.Size = UDim2.new(0, rightW, 0, 48)
+
+        local listTitleY = 58 + viewportH + 87
+        listTitle.Position = UDim2.fromOffset(rightX + 2, listTitleY)
+        local listY = listTitleY + 20
+        playerList.Position = UDim2.fromOffset(rightX, listY)
+        playerList.Size = UDim2.new(0, rightW, 1, -(listY + 10))
+
+        overlay.Size = UDim2.fromScale(1, 1)
+        overlayBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+        overlayChams.Position = UDim2.new(0.5, 0, 0.5, 0)
+        overlayHpTrack.Position = UDim2.new(0.5, -45, 0.5, -64)
+        playerList.ScrollBarThickness = playerList.AbsoluteSize.Y < 30 and 1 or 2
+    end
+
+    layoutInspector(inspector.AbsoluteSize.X, inspector.AbsoluteSize.Y)
+
+    -- Embed the former CUSTOMIZE ESP controls directly into ESP MONITOR.
+    -- The standalone customizer window is no longer used; its control panel is
+    -- reparented here so all existing control callbacks keep working.
+    task.defer(function()
+        pcall(function()
+            if not _G.SpookyESPCustomizerWindow and _G.openESPCustomizerWindow then
+                _G.openESPCustomizerWindow()
+            end
+            local customizer = _G.SpookyESPCustomizerWindow
+            local controls = _G.SpookyESPCustomizerControls
+            local previewPanel = _G.SpookyESPCustomizerPreviewPanel
+            local offsetBar = _G.SpookyESPCustomizerOffsetBar
+            local applyBtn = _G.SpookyESPCustomizerApply
+            local resetBtn = _G.SpookyESPCustomizerReset
+            if customizer and customizer.Parent then
+                customizer.Visible = false
+                customizer.Parent = nil
+            end
+            if controls and controls.Parent then
+                controls.Parent = inspector
+                controls.Name = "ESPCustomizeControls"
+                local customizeTitle = inspector:FindFirstChild("EmbeddedCustomizeTitle")
+                if not customizeTitle then
+                    customizeTitle = text(inspector, "EmbeddedCustomizeTitle", "CUSTOMIZE ESP", 9, UDim2.fromOffset(12, 40), Enum.Font.GothamBold, Color3.fromRGB(155, 165, 188))
+                    customizeTitle.Size = UDim2.fromOffset(230, 14)
+                    customizeTitle.ZIndex = 126
+                end
+                controls.ZIndex = 125
+                embeddedControls = controls
+                for _, child in ipairs(controls:GetChildren()) do
+                    if child:IsA("GuiObject") then child.ZIndex = 126 end
+                end
+            end
+            if previewPanel and previewPanel.Parent then
+                -- Keep the old preview panel hidden; ESP MONITOR's live preview is the single source of truth.
+                previewPanel.Visible = false
+            end
+            if offsetBar then
+                offsetBar.Parent = inspector
+                offsetBar.ZIndex = 130
+                embeddedOffsetBar = offsetBar
+            end
+            if applyBtn then
+                applyBtn.Parent = inspector
+                applyBtn.ZIndex = 130
+                embeddedApply = applyBtn
+            end
+            if resetBtn then
+                resetBtn.Parent = inspector
+                resetBtn.ZIndex = 130
+                embeddedReset = resetBtn
+            end
+            layoutInspector(inspector.AbsoluteSize.X, inspector.AbsoluteSize.Y)
+            if _G.SpookyPremiumESPMonitorRefresh then
+                pcall(_G.SpookyPremiumESPMonitorRefresh)
+            end
+        end)
+    end)
+
+    -- Dragging the live ESP tag now controls the same saved offset used by the embedded settings.
+    do
+        local draggingTag = false
+        local dragStart = Vector2.zero
+        local startOffX, startOffY = 0, 0
+        overlayTag.Active = true
+        overlayTag.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                draggingTag = true
+                dragStart = input.Position
+                startOffX = _G.G_ESP_TagOffsetX or 0
+                startOffY = _G.G_ESP_TagOffsetY or 0
+            end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                draggingTag = false
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if draggingTag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - dragStart
+                _G.G_ESP_TagOffsetX = math.clamp(math.floor((startOffX + delta.X / 10) * 10) / 10, -10, 10)
+                _G.G_ESP_TagOffsetY = math.clamp(math.floor((startOffY - delta.Y / 10) * 10) / 10, -5, 15)
+                if _G.SpookyPremiumESPMonitorRefresh then pcall(_G.SpookyPremiumESPMonitorRefresh) end
+            end
+        end)
+    end
+
+    layoutInspector(inspector.AbsoluteSize.X, inspector.AbsoluteSize.Y)
+
+    -- Floating ESP Monitor controls: draggable, closable, and resizable.
+    local espHeader = Instance.new("Frame")
+    espHeader.Name = "ESPWindowHeader"
+    espHeader.Size = UDim2.new(1, 0, 0, 38)
+    espHeader.Position = UDim2.fromOffset(0, 0)
+    espHeader.BackgroundTransparency = 1
+    espHeader.ZIndex = 120
+    espHeader.Parent = inspector
+
+    local espClose = Instance.new("TextButton")
+    espClose.Name = "Close"
+    espClose.Size = UDim2.fromOffset(28, 26)
+    espClose.Position = UDim2.new(1, -34, 0, 6)
+    espClose.BackgroundColor3 = Color3.fromRGB(20, 23, 32)
+    espClose.BorderSizePixel = 0
+    espClose.Text = "×"
+    espClose.TextSize = 16
+    espClose.Font = Enum.Font.GothamBold
+    espClose.TextColor3 = Color3.fromRGB(215, 220, 232)
+    espClose.ZIndex = 121
+    corner(espClose, 7)
+    espClose.Parent = espHeader
+    espClose.MouseButton1Click:Connect(function()
+        inspector.Visible = false
+    end)
+
+    local espDrag = Instance.new("TextButton")
+    espDrag.Name = "DragArea"
+    espDrag.Size = UDim2.new(1, -76, 0, 38)
+    espDrag.Position = UDim2.fromOffset(38, 0)
+    espDrag.BackgroundTransparency = 1
+    espDrag.Text = ""
+    espDrag.AutoButtonColor = false
+    espDrag.ZIndex = 120
+    espDrag.Parent = espHeader
+
+    do
+        local dragging = false
+        local dragStart = Vector2.zero
+        local startPos = inspector.Position
+        espDrag.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = inspector.Position
+            end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - dragStart
+                inspector.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
+    end
+
+    local function addResizeGrip(gui, minW, minH, maxW, maxH, onResize)
+        local grip = Instance.new("TextButton")
+        grip.Name = "ResizeGrip"
+        grip.Size = UDim2.fromOffset(18, 18)
+        grip.AnchorPoint = Vector2.new(1, 1)
+        grip.Position = UDim2.new(1, -4, 1, -4)
+        grip.BackgroundTransparency = 1
+        grip.Text = "◢"
+        grip.TextSize = 11
+        grip.Font = Enum.Font.GothamBold
+        grip.TextColor3 = Color3.fromRGB(105, 116, 140)
+        grip.AutoButtonColor = false
+        grip.ZIndex = 130
+        grip.Parent = gui
+        local resizing = false
+        local startMouse = Vector2.zero
+        local startSize = gui.AbsoluteSize
+        grip.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                resizing = true
+                startMouse = input.Position
+                startSize = gui.AbsoluteSize
+            end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                resizing = false
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - startMouse
+                local w = math.clamp(startSize.X + delta.X, minW, maxW)
+                local h = math.clamp(startSize.Y + delta.Y, minH, maxH)
+                gui.Size = UDim2.fromOffset(w, h)
+                if onResize then pcall(onResize, w, h) end
+            end
+        end)
+        return grip
+    end
+
+    -- Main menu resize handle.
+    addResizeGrip(root, 760, 460, 1280, 860, function()
+        for _, child in ipairs(content:GetChildren()) do
+            if child:IsA("ScrollingFrame") then
+                task.defer(function() fitPageCanvas(child) end)
+            end
+        end
+    end)
+
+    -- ESP window resize handle.
+    addResizeGrip(inspector, 340, 430, 760, 820, function(w, h)
+        layoutInspector(w, h)
+    end)
+
+    -- ESP Monitor is opened from Visuals -> ESP Visuals.
+    -- The window itself remains a floating child of the same ScreenGui.
+    _G.SpookyESPMonitorWindow = inspector
+    _G.openESPCustomizerWindow = function()
+        inspector.Visible = not inspector.Visible
+        if inspector.Visible and _G.SpookyPremiumESPMonitorRefresh then
+            pcall(_G.SpookyPremiumESPMonitorRefresh)
+        end
+    end
+
+    -- Keep the floating monitor tied to the main menu visibility.
+    local originalClose = close.MouseButton1Click
+    close.MouseButton1Click:Connect(function()
+        inspector.Visible = false
+    end)
+
+    -- Move the already-created feature pages into the new content area.
+    PagesFolder = content
+    _G.SpookyPagesFolder = content
+    for _, page in ipairs(savedPages) do
+        page.Parent = content
+        page.Position = UDim2.fromOffset(0, 0)
+        page.Size = UDim2.fromScale(1, 1)
+        page.ZIndex = 6
+        page.BackgroundTransparency = 1
+    end
+
+    -- The real page names from the feature layer. The previous shell used
+    -- Home_Page / SpookyBounty_Page / Cheats_Page, which do not exist,
+    -- leaving the center panel blank. Keep the feature pages intact and map
+    -- the premium tabs to their actual instances.
+    local tabMap = {
+        {id="Home",         label="Dashboard", page=nil},
+        {id="Combat",      label="Combat",    page="Combat_Page"},
+        {id="SpookyBounty",label="Bounty",    page="AutoBounty_Page"},
+        {id="Visual",      label="Visuals",   page="Visual_Page"},
+        {id="Cheats",      label="Cheats",    page="Glitches_Page"},
+        {id="FFlags",      label="World",     page="FFlags_Page"},
+        {id="Keybinds",    label="Keybinds",  page="Keybinds_Page"},
+        {id="UI",          label="Interface", page="UI_Page"},
+        {id="Misc",        label="Misc",      page="Misc_Page"},
+        {id="Configs",     label="Configs",   page="Configs_Page"},
+    }
+
+    -- Make every feature page self-contained: content that is taller than the
+    -- viewport scrolls instead of painting outside the premium shell.
+    local function fitPageCanvas(page)
+        if not page or not page:IsA("ScrollingFrame") then return end
+        page.ClipsDescendants = true
+        page.ScrollingDirection = Enum.ScrollingDirection.Y
+        page.ScrollBarThickness = 3
+        local maxBottom = page.AbsoluteSize.Y
+        for _, child in ipairs(page:GetChildren()) do
+            if child:IsA("GuiObject") and child.Visible then
+                local bottom = child.Position.Y.Offset + child.Size.Y.Offset + 14
+                if bottom > maxBottom then maxBottom = bottom end
+            end
+        end
+        page.CanvasSize = UDim2.new(0, 0, 0, math.max(maxBottom, page.AbsoluteSize.Y))
+    end
+
+    for _, data in ipairs(tabMap) do
+        if data.page then
+            local page = content:FindFirstChild(data.page)
+            if page and page:IsA("ScrollingFrame") then
+                page.ClipsDescendants = true
+                page.Active = true
+                page.ScrollingEnabled = true
+                page.ScrollingDirection = Enum.ScrollingDirection.Y
+                page.ScrollBarThickness = 3
+                page.CanvasPosition = Vector2.zero
+                task.defer(function() fitPageCanvas(page) end)
+                page.ChildAdded:Connect(function() task.defer(function() fitPageCanvas(page) end) end)
+                page.ChildRemoved:Connect(function() task.defer(function() fitPageCanvas(page) end) end)
+            end
+        end
+    end
+
+    -- Dashboard: a contained Roblox avatar preview with a slow rotation,
+    -- player stats and quick-status cards. It never exceeds the content frame.
+    local dashboard = Instance.new("ScrollingFrame")
+    dashboard.Name = "Dashboard_Page"
+    dashboard.Size = UDim2.fromScale(1, 1)
+    dashboard.Position = UDim2.fromOffset(0, 0)
+    dashboard.BackgroundTransparency = 1
+    dashboard.BorderSizePixel = 0
+    dashboard.ScrollBarThickness = 3
+    dashboard.ScrollBarImageColor3 = Color3.fromRGB(76, 91, 116)
+    dashboard.ScrollingDirection = Enum.ScrollingDirection.Y
+    dashboard.Active = true
+    dashboard.ClipsDescendants = true
+    dashboard.ZIndex = 7
+    dashboard.Parent = content
+
+    local dashPadding = Instance.new("UIPadding", dashboard)
+    dashPadding.PaddingTop = UDim.new(0, 10)
+    dashPadding.PaddingBottom = UDim.new(0, 10)
+    dashPadding.PaddingLeft = UDim.new(0, 10)
+    dashPadding.PaddingRight = UDim.new(0, 10)
+
+    local function dashCard(name, size, pos)
+        local f = panel(dashboard, name, size, pos, Color3.fromRGB(9, 13, 21), 0.02, 10)
+        f.ZIndex = 8
+        border(f, Color3.fromRGB(55, 67, 88), 0.48, 1)
+        return f
+    end
+
+    local avatarCard = dashCard("AvatarCard", UDim2.new(0.48, -7, 0, 285), UDim2.fromOffset(10, 10))
+    local avatarTitle = text(avatarCard, "Title", "ROBLOX AVATAR", 10, UDim2.fromOffset(12, 10), Enum.Font.GothamBold, Color3.fromRGB(224, 230, 240))
+    avatarTitle.Size = UDim2.new(1, -24, 0, 18)
+    local avatarSub = text(avatarCard, "Sub", "LIVE CHARACTER PREVIEW", 7, UDim2.fromOffset(12, 28), Enum.Font.GothamMedium, Color3.fromRGB(105, 119, 141))
+    avatarSub.Size = UDim2.new(1, -24, 0, 13)
+
+    local dashViewport = Instance.new("ViewportFrame")
+    dashViewport.Name = "DashboardAvatar"
+    dashViewport.Size = UDim2.new(1, -24, 1, -62)
+    dashViewport.Position = UDim2.fromOffset(12, 48)
+    dashViewport.BackgroundColor3 = Color3.fromRGB(7, 10, 17)
+    dashViewport.BackgroundTransparency = 0.05
+    dashViewport.BorderSizePixel = 0
+    dashViewport.Ambient = Color3.fromRGB(190, 200, 224)
+    dashViewport.LightColor = Color3.fromRGB(255, 255, 255)
+    dashViewport.LightDirection = Vector3.new(-1, -1, -1)
+    dashViewport.ZIndex = 9
+    dashViewport.Parent = avatarCard
+    corner(dashViewport, 9)
+    border(dashViewport, Color3.fromRGB(53, 66, 89), 0.5, 1)
+
+    local dashWorld = Instance.new("WorldModel", dashViewport)
+    local dashCamera = Instance.new("Camera", dashViewport)
+    dashViewport.CurrentCamera = dashCamera
+    local dashModel
+    local dashAngle = 0
+
+    local function rebuildDashboardAvatar()
+        for _, child in ipairs(dashWorld:GetChildren()) do
+            child:Destroy()
+        end
+        dashModel = nil
+
+        local character = LocalPlayer and LocalPlayer.Character
+        if not character then return end
+
+        -- Character clones can inherit first-person/local transparency state.
+        -- Clear those properties so the ViewportFrame always has visible geometry.
+        local oldArchivable = character.Archivable
+        local ok, clone = pcall(function()
+            character.Archivable = true
+            return character:Clone()
+        end)
+        pcall(function() character.Archivable = oldArchivable end)
+
+        -- Fallback for characters that cannot be cloned cleanly.
+        if (not ok or not clone) and LocalPlayer and Players then
+            pcall(function()
+                local hum = character:FindFirstChildOfClass("Humanoid")
+                if hum and Players.GetHumanoidDescriptionFromUserId and Players.CreateHumanoidModelFromDescriptionAsync then
+                    local desc = Players:GetHumanoidDescriptionFromUserId(LocalPlayer.UserId)
+                    clone = Players:CreateHumanoidModelFromDescriptionAsync(desc, hum.RigType)
+                end
+            end)
+        end
+
+        if not clone then return end
+
+        for _, d in ipairs(clone:GetDescendants()) do
+            if d:IsA("Script") or d:IsA("LocalScript") or d:IsA("ModuleScript") then
+                d:Destroy()
+            elseif d:IsA("BasePart") then
+                d.Anchored = true
+                d.CanCollide = false
+                d.CanTouch = false
+                d.CanQuery = false
+                d.LocalTransparencyModifier = 0
+                d.Transparency = math.clamp(d.Transparency, 0, 1)
+            elseif d:IsA("Decal") or d:IsA("Texture") then
+                d.Transparency = 0
+            elseif d:IsA("Humanoid") then
+                d.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+                d.AutoRotate = false
+                d.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+                d.NameDisplayDistance = 0
+            end
+        end
+
+        clone.Parent = dashWorld
+        pcall(function()
+            clone:PivotTo(CFrame.new(0, 0, 0))
+        end)
+
+        local _, size = clone:GetBoundingBox()
+        local height = math.max(size.Y, 4)
+        local width = math.max(size.X, size.Z)
+        local distance = math.max(6.5, height * 1.55, width * 2.2)
+
+        dashCamera.FieldOfView = 38
+        dashCamera.CFrame = CFrame.new(
+            Vector3.new(0, height * 0.42, distance),
+            Vector3.new(0, height * 0.42, 0)
+        )
+
+        dashModel = clone
+    end
+
+    -- Wait for the character appearance before the first render, then refresh
+    -- again after respawn/appearance loading.
+    task.defer(function()
+        task.wait(0.15)
+        rebuildDashboardAvatar()
+    end)
+
+    if LocalPlayer then
+        LocalPlayer.CharacterAdded:Connect(function()
+            task.wait(0.35)
+            rebuildDashboardAvatar()
+            task.wait(1)
+            rebuildDashboardAvatar()
+        end)
+
+        pcall(function()
+            LocalPlayer.CharacterAppearanceLoaded:Connect(function()
+                task.defer(rebuildDashboardAvatar)
+            end)
+        end)
+    end
+
+    task.spawn(function()
+        while dashboard.Parent and isCurrentSession() do
+            task.wait(0.035)
+            if dashModel and dashModel.Parent then
+                dashAngle += math.rad(0.65)
+                pcall(function() dashModel:PivotTo(CFrame.new(0, 0, 0) * CFrame.Angles(0, dashAngle, 0)) end)
+            end
+        end
+    end)
+
+    local infoCard = dashCard("InfoCard", UDim2.new(0.52, -13, 0, 285), UDim2.new(0.48, 3, 0, 10))
+    local infoTitle = text(infoCard, "Title", "PLAYER OVERVIEW", 10, UDim2.fromOffset(12, 10), Enum.Font.GothamBold, Color3.fromRGB(224, 230, 240))
+    infoTitle.Size = UDim2.new(1, -24, 0, 18)
+    local infoSub = text(infoCard, "Sub", "CURRENT SESSION", 7, UDim2.fromOffset(12, 28), Enum.Font.GothamMedium, Color3.fromRGB(105, 119, 141))
+    infoSub.Size = UDim2.new(1, -24, 0, 13)
+
+    local function infoRow(parent, y, label, value)
+        local row = panel(parent, label, UDim2.new(1, -24, 0, 43), UDim2.fromOffset(12, y), Color3.fromRGB(12, 17, 26), 0, 8)
+        row.ZIndex = 9
+        border(row, Color3.fromRGB(48, 60, 80), 0.58, 1)
+        local l = text(row, "Label", label, 7, UDim2.fromOffset(10, 5), Enum.Font.GothamBold, Color3.fromRGB(105, 118, 139))
+        l.Size = UDim2.new(0.42, 0, 0, 12)
+        local v = text(row, "Value", value, 9, UDim2.new(0.42, 10, 0, 4), Enum.Font.GothamSemibold, Color3.fromRGB(222, 228, 239))
+        v.Size = UDim2.new(0.54, -20, 0, 15)
+        v.TextTruncate = Enum.TextTruncate.AtEnd
+        return v
+    end
+
+    _G.SpookyDashboardRefs = _G.SpookyDashboardRefs or {}
+    local D = _G.SpookyDashboardRefs
+    D.dashName = infoRow(infoCard, 52, "PLAYER", LocalPlayer and (LocalPlayer.DisplayName or LocalPlayer.Name) or "Unknown")
+    D.dashBounty = infoRow(infoCard, 101, "BOUNTY / HONOR", "--")
+    D.dashLevel = infoRow(infoCard, 150, "LEVEL", "--")
+    D.dashTeam = infoRow(infoCard, 199, "FACTION", LocalPlayer and (LocalPlayer.Team and LocalPlayer.Team.Name or "Pirates") or "--")
+
+    D.statusCard = dashCard("StatusCard", UDim2.new(1, -20, 0, 82), UDim2.fromOffset(10, 305))
+    D.statusTitle = text(D.statusCard, "Title", "SYSTEM STATUS", 9, UDim2.fromOffset(12, 9), Enum.Font.GothamBold, Color3.fromRGB(195, 203, 218))
+    D.statusTitle.Size = UDim2.new(1, -24, 0, 15)
+    D.statusText = text(D.statusCard, "Status", "Ready — all feature pages loaded", 8, UDim2.fromOffset(12, 29), Enum.Font.GothamMedium, Color3.fromRGB(110, 225, 176))
+    D.statusText.Size = UDim2.new(1, -24, 0, 16)
+    D.statusText.TextTruncate = Enum.TextTruncate.AtEnd
+
+    local function getDashboardLevelValue()
+        local ls = LocalPlayer and LocalPlayer:FindFirstChild("leaderstats")
+        local data = LocalPlayer and LocalPlayer:FindFirstChild("Data")
+        local level = (data and data:FindFirstChild("Level")) or (ls and ls:FindFirstChild("Level"))
+        return level and tonumber(level.Value) or nil, level
+    end
+
+    local function formatDashboardStatValue(n)
+        if not n then return "--" end
+        if n >= 1000000 then return string.format("%.2fM", n / 1000000) end
+        if n >= 1000 then return string.format("%.1fK", n / 1000) end
+        return tostring(math.floor(n))
+    end
+
+    D.refreshDashboardStats = function()
+        local ls = LocalPlayer and LocalPlayer:FindFirstChild("leaderstats")
+        local bounty = ls and (ls:FindFirstChild("Bounty/Honor") or ls:FindFirstChild("Bounty") or ls:FindFirstChild("Honor"))
+        local levelValue = getDashboardLevelValue()
+        local bv = bounty and tonumber(bounty.Value)
+        local faction = LocalPlayer.Team and LocalPlayer.Team.Name or "Pirates"
+        local statLabel = (string.lower(faction):find("marine", 1, true) ~= nil) and "Honor" or "Bounty"
+
+        D.dashBounty.Text = bv and (statLabel .. ": " .. formatDashboardStatValue(bv)) or (statLabel .. ": --")
+        D.dashLevel.Text = levelValue and ("Level " .. tostring(levelValue)) or "Level --"
+        D.dashTeam.Text = faction
+        D.dashName.Text = LocalPlayer.DisplayName or LocalPlayer.Name
+    end
+    D.refreshDashboardStats()
+    pcall(function()
+        local ls = LocalPlayer:FindFirstChild("leaderstats")
+        if ls then
+            for _, stat in ipairs(ls:GetChildren()) do
+                stat.Changed:Connect(D.refreshDashboardStats)
+            end
+            ls.ChildAdded:Connect(function(stat)
+                stat.Changed:Connect(D.refreshDashboardStats)
+                D.refreshDashboardStats()
+            end)
+        end
+        local data = LocalPlayer:FindFirstChild("Data")
+        if data then
+            local level = data:FindFirstChild("Level")
+            if level then level.Changed:Connect(D.refreshDashboardStats) end
+            data.ChildAdded:Connect(function(child)
+                if child.Name == "Level" then child.Changed:Connect(D.refreshDashboardStats) end
+                D.refreshDashboardStats()
+            end)
+        end
+        LocalPlayer.ChildAdded:Connect(function(child)
+            if child.Name == "Data" then
+                local level = child:FindFirstChild("Level")
+                if level then level.Changed:Connect(D.refreshDashboardStats) end
+                child.ChildAdded:Connect(function(grandChild)
+                    if grandChild.Name == "Level" then grandChild.Changed:Connect(D.refreshDashboardStats) end
+                    D.refreshDashboardStats()
+                end)
+                D.refreshDashboardStats()
+            end
+        end)
+        LocalPlayer:GetPropertyChangedSignal("Team"):Connect(D.refreshDashboardStats)
+    end)
+
+    dashboard.CanvasSize = UDim2.new(0, 0, 0, 397)
+
+    D.selectTab = function(id)
+        local picked = nil
+        for _, data in ipairs(tabMap) do
+            local active = data.id == id
+            if data.page then
+                local page = content:FindFirstChild(data.page)
+                if page then
+                    page.Visible = active
+                    if active then
+                        page.CanvasPosition = Vector2.zero
+                        task.defer(function() fitPageCanvas(page) end)
+                    end
+                end
+            end
+            if data.id == "Home" then
+                dashboard.Visible = active
+                if active then dashboard.CanvasPosition = Vector2.zero end
+            end
+            local b = NavButtons[data.id]
+            if b then
+                b.BackgroundColor3 = active and Color3.fromRGB(20, 28, 42) or Color3.fromRGB(8, 11, 18)
+                b.TextColor3 = active and Color3.fromRGB(231, 238, 250) or Color3.fromRGB(126, 137, 157)
+                local line = b:FindFirstChild("ActiveLine")
+                if line then line.Visible = active end
+            end
+            if active then picked = data end
+        end
+        currentActiveTab = id
+        _G.CurrentActiveTab = id
+        return picked
+    end
+
+    for i, data in ipairs(tabMap) do
+        local b = Instance.new("TextButton")
+        b.Name = data.id .. "Tab"
+        b.Size = UDim2.fromOffset(math.clamp(#data.label * 7 + 22, 66, 92), 30)
+        b.BackgroundColor3 = Color3.fromRGB(8, 11, 18)
+        b.BorderSizePixel = 0
+        b.Text = data.label
+        b.TextSize = 8.5
+        b.Font = Enum.Font.GothamSemibold
+        b.TextColor3 = Color3.fromRGB(126, 137, 157)
+        b.AutoButtonColor = false
+        b.LayoutOrder = i
+        b.ZIndex = 12
+        b.Parent = nav
+        corner(b, 6)
+        local line = Instance.new("Frame", b)
+        line.Name = "ActiveLine"
+        line.Size = UDim2.new(1, -18, 0, 2)
+        line.Position = UDim2.new(0, 9, 1, -4)
+        line.BackgroundColor3 = Color3.fromRGB(93, 170, 255)
+        line.BorderSizePixel = 0
+        line.Visible = false
+        corner(line, 2)
+        NavButtons[data.id] = b
+        b.MouseEnter:Connect(function()
+            if currentActiveTab ~= data.id then
+                TweenService:Create(b, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(14, 18, 27)}):Play()
+                TweenService:Create(b, TweenInfo.new(0.12), {TextColor3 = Color3.fromRGB(190, 197, 211)}):Play()
+            end
+        end)
+        b.MouseLeave:Connect(function()
+            if currentActiveTab ~= data.id then
+                TweenService:Create(b, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(8, 11, 18)}):Play()
+                TweenService:Create(b, TweenInfo.new(0.12), {TextColor3 = Color3.fromRGB(126, 137, 157)}):Play()
+            end
+        end)
+        b.MouseButton1Click:Connect(function() D.selectTab(data.id) end)
+    end
+
+    showTab = function(tabName)
+        local id = resolveCanonicalTabId and resolveCanonicalTabId(tabName) or tostring(tabName or "Home")
+        for _, data in ipairs(tabMap) do
+            if data.id == id then
+                D.selectTab(id)
+                return
+            end
+        end
+        D.selectTab("Home")
+    end
+    globalShowTab = showTab
+    _G.SpookyShowTab = showTab
+    _G.SpookyGlobalShowTab = showTab
+
+    -- Compact top-right controls.
+    close.MouseButton1Click:Connect(function()
+        root.Visible = false
+        inspector.Visible = false
+    end)
+    local minimize = Instance.new("TextButton", topbar)
+    minimize.Name = "PremiumMinimize"
+    minimize.Size = UDim2.fromOffset(28, 28)
+    minimize.Position = UDim2.new(1, -76, 0.5, -14)
+    minimize.BackgroundColor3 = Color3.fromRGB(19, 22, 31)
+    minimize.Text = "−"
+    minimize.TextSize = 16
+    minimize.Font = Enum.Font.GothamMedium
+    minimize.TextColor3 = Color3.fromRGB(185, 192, 207)
+    minimize.BorderSizePixel = 0
+    minimize.ZIndex = 20
+    corner(minimize, 7)
+    border(minimize, Color3.fromRGB(65, 71, 89), 0.35, 1)
+
+    local function makeDrag(handle, target)
+        local dragging, startMouse, startPos
+        handle.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                startMouse = input.Position
+                startPos = target.Position
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local d = input.Position - startMouse
+                target.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+            end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+        end)
+    end
+    makeDrag(topbar, root)
+
+    local mini = Instance.new("TextButton")
+    mini.Name = "Spooky_MobileToggle"
+    mini.Size = UDim2.fromOffset(48, 48)
+    mini.Position = UDim2.fromOffset(18, 120)
+    mini.BackgroundColor3 = Color3.fromRGB(8, 11, 18)
+    mini.Text = "S"
+    mini.TextSize = 18
+    mini.Font = Enum.Font.GothamBlack
+    mini.TextColor3 = Color3.fromRGB(223, 231, 245)
+    mini.BorderSizePixel = 0
+    mini.Visible = false
+    mini.ZIndex = 9999
+    mini.Parent = ScreenGui
+    corner(mini, 12)
+    border(mini, Color3.fromRGB(79, 103, 140), 0.35, 1)
+    mini.MouseButton1Click:Connect(function() root.Visible = true; mini.Visible = false end)
+    minimize.MouseButton1Click:Connect(function()
+        root.Visible = false
+        inspector.Visible = false
+        mini.Visible = true
+    end)
+    _G.SpookyThemedElements.MobileToggle = mini
+
+    _G.SpookySetUIWallpaper = function(assetId, transparency)
+        local value = tostring(assetId or "")
+        if value == "" then return false end
+        if not string.find(value, "rbxassetid://", 1, true) then value = "rbxassetid://" .. value end
+        wallpaper.Image = value
+        wallpaper.ImageTransparency = math.clamp(tonumber(transparency) or 0.42, 0, 1)
+        _G.SpookyUIBackgroundAsset = value
+        _G.SpookyUIBackgroundTransparency = wallpaper.ImageTransparency
+        return true
+    end
+
+    -- Compatibility aliases: external feature callbacks can still request the
+    -- old canonical names without breaking the new navigation.
+    local premiumShowTab = showTab
+    showTab = function(tabName)
+        local raw = tostring(tabName or "Home")
+        local normalized = string.lower(raw):gsub("[%s_%-]+", "")
+        if normalized == "spookybounty" or normalized == "autobounty" or normalized == "bounty" then raw = "SpookyBounty" end
+        if normalized == "glitches" or normalized == "cheats" then raw = "Cheats" end
+        if normalized == "dashboard" or normalized == "home" or normalized == "inicio" then raw = "Home" end
+        return premiumShowTab(raw)
+    end
+    globalShowTab = showTab
+    _G.SpookyShowTab = showTab
+    _G.SpookyGlobalShowTab = showTab
+
+    for _, child in ipairs(content:GetChildren()) do
+        if child:IsA("ScrollingFrame") then
+            child.ClipsDescendants = true
+            child.Active = true
+            child.ScrollingEnabled = true
+            child.ScrollingDirection = Enum.ScrollingDirection.Y
+            child.ScrollBarThickness = 3
+            if child ~= dashboard then task.defer(function() fitPageCanvas(child) end) end
+        end
+    end
+
+    showTab("Home")
+    root.Visible = true
+end
+__SpookyBuildPremiumUI()
+
 if _G.SpookyFinishStartup then _G.SpookyFinishStartup() end
 return ScreenGui
+
